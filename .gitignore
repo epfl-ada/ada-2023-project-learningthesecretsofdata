@@ -1,3 +1,5 @@
 dataset/*
 .DS_Store
 .idea/
+.env
+__pycache__

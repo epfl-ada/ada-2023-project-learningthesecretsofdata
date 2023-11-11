@@ -2,20 +2,23 @@ import pandas as pd
 
 
 def insight(x: pd.DataFrame) -> pd.DataFrame:
-    """
-    Look at the dataframe and return a well-structured DataFrame resuming information of x.
+    """Look at the dataframe and return a well-structured DataFrame resuming information of x.
 
-    :param x: DataFrame wanted to be analyzed.
-    :return: Resumed information/insight of DataFrame x.
+    Parameters
+    ----------
+    x: dataframe to gain insight
+
+    Returns
+    -------
+    Insight of dataframe x
     """
     # TODO: Create a function returning all information asked by TAs. Refer to notebook, first Markdown.
-    pass
+    return x.info(), x.describe()
 
 
-def load_movies() -> pd.DataFrame:
+def load_movies(movie_metadata_path: str) -> pd.DataFrame:
 
-    MOVIE_METADATA_PATH = 'dataset/MovieSummaries/movie.metadata.tsv'
-    movies_df = pd.read_csv(MOVIE_METADATA_PATH, sep='\t', names=['wiki_movieID', 'freebase_movieID', 'name',
+    movies_df = pd.read_csv(movie_metadata_path, sep='\t', names=['wiki_movieID', 'freebase_movieID', 'name',
                                                                   'release_date', 'box_office_revenue', 'runtime',
                                                                   'languages', 'countries', 'genres'], header=None)
     return movies_df

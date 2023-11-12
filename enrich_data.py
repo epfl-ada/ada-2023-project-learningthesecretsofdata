@@ -3,39 +3,38 @@ This script has been used to create our personal, specific and enrich dataframe 
 the CMU dataset. Our analysis performed in the JupyterNotebook is using this processed
 data.
 """
-import numpy as np
+import time
+
+import pandas
 
 from helpers import *
 from tmdb.tmdb import *
 
-if __name__ == '__main__':
 
+async def enhanced_with_composer(clean_movies: pandas.DataFrame):
+    async with TMDB() as tmdb:
+        start_time = time.time()
+
+        # retrieve 8327 composers information in 150.43 seconds
+        result = await tmdb.append_movie_composers(clean_movies)
+
+        end_time = time.time()
+
+        print(f'Elapsed time: {end_time - start_time}')
+
+        # Finally create a CSV file of this new enrich dataframe
+        result.to_csv('dataset/clean_enrich_movies.csv')
+
+
+if __name__ == '__main__':
     # Load movies data set
-    movies = load_movies()
+    movies = load_movies('dataset/MovieSummaries/movie.metadata.tsv')
 
     # Clean data to filter only observation with all needed features
-    clean_movies = clean_movies(movies).head(500)
+    clean_movies = clean_movies(movies)
 
     # Initialize list to store composer for all movies
     movies_composers = []
 
     # Retrieve composers of all movies
-    tmdb = TMDB()
-    for idx, (_, movie) in enumerate(clean_movies.iterrows()):
-        movie_composer = tmdb.movie_composer(movie_name=movie['name'],
-                                             year=movie['release_date'],
-                                             language='en-US',
-                                             adult=True)
-
-        # print for evolution
-        if idx % 100 == 0:
-            print(f'{idx}: {movie_composer}')
-
-        movies_composers.append(movie_composer if movie_composer else np.nan)
-
-    # Add this new information to the cleaned dataframe
-    clean_movies['composer'] = movies_composers
-
-    # Finally create a CSV file of this new enrich dataframe
-    csv_file_path = 'dataset/clea_enrich_movies.csv'
-    clean_movies.to_csv(csv_file_path, index=False)
+    asyncio.run(enhanced_with_composer(clean_movies))

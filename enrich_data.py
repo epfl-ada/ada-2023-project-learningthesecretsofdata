@@ -22,8 +22,10 @@ async def enhanced_with_composer(clean_movies: pandas.DataFrame):
 
         print(f'Elapsed time: {end_time - start_time}')
 
-        # Finally create a CSV file of this new enrich dataframe
-        result.to_csv('dataset/clean_enrich_movies.csv')
+        # Finally create a pickle file of this new enrich dataframe
+        # pickle, as it takes less space on disk, and allows to directly
+        # pars de composer column as a list of Composer without having to cast anything
+        result.to_pickle('dataset/clean_enrich_movies.pickle')
 
 
 if __name__ == '__main__':

@@ -1,4 +1,5 @@
 import json
+
 import pandas as pd
 
 
@@ -17,8 +18,8 @@ def insight(x: pd.DataFrame) -> pd.DataFrame:
     return x.info(), x.describe()
 
 
-def insight_clean_enrich(x: pd.DataFrame) -> pd.DataFrame:
-    """Return a structured and relevant insight of the enhanced movie dataframe.
+def insight_clean_enrich(x: pd.DataFrame):
+    """Print a structured and relevant insight of the enhanced movie dataframe.
 
     Parameters
     ----------
@@ -26,7 +27,7 @@ def insight_clean_enrich(x: pd.DataFrame) -> pd.DataFrame:
 
     Returns
     -------
-    Insight of dataframe x
+    None
     """
     # Check the composer attribute
     composers = x.composers

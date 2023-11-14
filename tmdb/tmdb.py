@@ -12,14 +12,14 @@ import requests
 from requests.exceptions import HTTPError
 
 from config import config
-from .Composer import Composer
+from Composer import Composer
 
 
 class TMDB:
     """
     Class representing a tmdb connection, to perform some request in order to enhance the dataset with tmdb data
 
-    This calss should be instantiated inside an 'async with' block, to automatically close the session once the block
+    This class should be instantiated inside an 'async with' block, to automatically close the session once the block
     is exited
 
     e.g. async with TMDB() as tmdb:
@@ -97,19 +97,19 @@ class TMDB:
         movie_infos_results = self._perform_request(url)['results']
         return movie_infos_results[0]['id'] if movie_infos_results else -1
 
-    def search_movie_credits(self, movie_ID) -> dict:
+    def search_movie_credits(self, movie_id) -> dict:
         """Retrieve all the movie credits
 
         Parameters
         ----------
-        movie_ID: id of specific movie
+        movie_id: id of specific movie
 
         Return
         ------
         Dictionary of movie credits
         """
         # TMDb API endpoint for movie details including credits
-        movie_url = f'{self._base_url}/movie/{movie_ID}/credits?language=en-US'
+        movie_url = f'{self._base_url}/movie/{movie_id}/credits?language=en-US'
 
         # GET request to the TMDb API for the movie details
         movie_response = self._perform_request(movie_url)

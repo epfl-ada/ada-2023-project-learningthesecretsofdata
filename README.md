@@ -1,6 +1,10 @@
-# Title
+# Helping Stanislas to achieve his dream !
 
 ## Abstract
+
+A 20-year-old aspiring musician, Stanislas, fueled by a passion for the film industry, embarks on a quest to launch his career. His ultimate dream? To hear one of his productions featured in a Hollywood film and become one of the planet's top composers. To increase his chances, he turns to a team of Data Scientists known as LSD.
+
+The LSD team's mission is to identify trends shared among successful music composers and compositions, ultimately optimizing choices for our young musician. The storyline focuses on American movies and Successful composers (successful meaning those who have produced soundtracks for high-grossing films, music appearing in more than ?? films, etc.)
 
 ## Research Questions
 

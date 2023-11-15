@@ -11,7 +11,6 @@
 ## Proposed timeline
 
 ```
-.
 ├── 20.11.23 - 
 │  
 ├── 23.11.23 - 
@@ -39,6 +38,12 @@
 ```
 
 ## Organization within the Team
+
+|Xavier|Paulo|David|Luca|Joris|
+|---|---|---|---|---|
+|   |   |   |   |   |
+|   |   |   |   |   |
+|   |   |   |   |   |
 
 ## Questions for TAs
 

@@ -1,9 +1,18 @@
-# Milestone 2: Insight Of Data And Feasibility Check Of Our Idea
+# Title
 
-<hr style="clear:both">
+## Abstract
 
-This repository contains the brainstorming made by the group to propose a interesting and meaningful idea for milestone 3.
-Our idea is based on a data analysis conducted in a jupyter notebook to feel the feasibility of the project.
+## Research Questions
+
+## Additional datasets
+
+## Methods
+
+## Proposed timeline
+
+## Organization within the Team
+
+## Questions for TAs
 
 
 **Authors:** [Luca Carroz](https://people.epfl.ch/emilie.carroz), [David Schroeter](https://people.epfl.ch/david.schroeter), 
@@ -11,7 +20,3 @@ Our idea is based on a data analysis conducted in a jupyter notebook to feel the
 [Paulo Ribeiro de Carvalho](https://people.epfl.ch/paulo.ribeirodecarvalho)
 
 **Project Mentor:** [Aoxiang Fan](https://people.epfl.ch/aoxiang.fan) ([Email](mailto:aoxiang.fan@epfl.ch))
-
-<hr style="clear:both">
-
-FEEL FREE TO COMPLETE THE README WITH MORE INFORMATION.

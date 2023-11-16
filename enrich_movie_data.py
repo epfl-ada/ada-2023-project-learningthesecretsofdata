@@ -39,11 +39,13 @@ if __name__ == '__main__':
     # Load movies data set
     raw_movies = load_movies('dataset/MovieSummaries/movie.metadata.tsv')
 
-    # Clean data to filter only observation with all needed features
+    # Clean data to filter only observation with all needed features (without looking at box office revenue)
     cleaned_movies_without_revenue_cleaned = clean_movies(raw_movies)
 
+    # Retrieve box office revenue of all movies
     res = asyncio.run(enhanced_with_revenue(cleaned_movies_without_revenue_cleaned))
 
+    # Clean
     cleaned_movies = clean_movies_revenue(res)
 
     # Retrieve composers of all movies

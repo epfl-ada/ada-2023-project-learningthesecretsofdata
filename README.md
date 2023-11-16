@@ -69,7 +69,21 @@ Make sure to create a file `.env` with your API bearer token using the `.env_exa
 
 ## Methods
 
-Talk about the API. What is the technology ? Why did we use it instead of already existing dataset ? 
+### Data Loading
+
+We load the data from the `clean_enrich_movie.pickle` file. This file contains all the information about the movies and 
+the composers. We also load the `spotify_dataset.pickle` file which contains the information about the music genre and
+the popularity of the music. We use the first dataset to answer the questions 2, 3, 4, 5 and 6. We use the second 
+dataset to answer the question 1 & 7. 
+
+### Data Cleaning
+
+# TODO
+
+### Data Visualization
+
+We will use a GitHub page to present our results. The plots will be interactive and will be created using the `plotly`
+library. Notably, we want to have a world map with the number of composers per country to answer the question 4.
 
 ## Proposed timeline
 
@@ -104,7 +118,7 @@ Talk about the API. What is the technology ? Why did we use it instead of alread
 
 | Xavier       | Paulo   | David        | Luca    | Joris        |
 |--------------|---------|--------------|---------|--------------|
-| Q.7, Website | Q.1 + 4 | Q.2, Website | Q.6 + 5 | Q.3, Website |
+| Q.7, Website | Q.1 & 4 | Q.2, Website | Q.6 & 5 | Q.3, Website |
 
 ## Questions for TAs
 

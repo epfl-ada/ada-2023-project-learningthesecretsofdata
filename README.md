@@ -16,7 +16,7 @@ A 20-year-old aspiring musician, Stanislas, fueled by a passion for the film ind
 career. His ultimate dream? To hear one of his productions featured in a Hollywood film and become one of the planet's 
 top composers. To increase his chances, he turns to a team of Data Scientists known as LSD.
 
-The LSD team's mission is to identify trends shared among successful music composers and compositions, ultimately 
+The "LearningtheSecretsofData" team's mission is to identify trends shared among successful music composers and compositions, ultimately 
 optimizing choices for our young musician. This is not an easy task but the team is driven by the wish of helping 
 Stanislas. How could they provoke a cascADA of successful choices in Stany career.
 

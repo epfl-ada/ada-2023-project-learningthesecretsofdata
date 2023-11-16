@@ -12,7 +12,7 @@ import requests
 from requests.exceptions import HTTPError
 
 from config import config
-from Composer import Composer
+from tmdb.Composer import Composer
 
 
 class TMDB:

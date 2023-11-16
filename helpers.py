@@ -2,100 +2,6 @@ import json
 import pandas as pd
 
 
-def insight(x: pd.DataFrame) -> pd.DataFrame:
-    """Look at the dataframe and return a well-structured DataFrame resuming information of x.
-
-    Parameters
-    ----------
-    x: dataframe to gain insight
-
-    Returns
-    -------
-    Insight of dataframe x
-    """
-    # Retrieve all column/attribute names
-    attributes_name = x.columns
-
-    # For all attribute, check the type
-    attributes_type = columns_type(x)
-
-    # TODO: Create a function returning all information asked by TAs. Refer to notebook, first Markdown.
-    return x.info(), x.describe()
-
-
-def columns_type(x: pd.DataFrame) -> list:
-    """Return the type of all columns of a pandas DataFrame.
-
-    Parameters
-    ----------
-    x: dataframe to gain insight
-
-    Returns
-    -------
-    List of all types
-    """
-    # Clean the rows where there is Nan values to not interfer the result
-    x = x[~x.isnull().any(axis=1)]
-
-    # Check each column type(s) (if few of them, all are return)
-    columns_data_type = []
-    for column in x.columns:
-        column_data_types = x[column].apply(type)
-        column_data_types = column_data_types.unique()
-        columns_data_type.append(column_data_types)
-
-    return columns_data_type
-
-
-def insight_clean_enrich(x: pd.DataFrame):
-    """Print a structured and relevant insight of the enhanced movie dataframe.
-
-    Parameters
-    ----------
-    x: dataframe to gain insight
-
-    Returns
-    -------
-    None
-    """
-    # Check the composer attribute
-    composers = x.composers
-    na_composers_sum = composers.isna().sum()
-
-    # Only check for first composer of the list if multiple are returned
-    composers_no_na = composers.dropna()
-    composers_no_na_name = composers_no_na.agg(lambda c: c[0].name)
-    composers_no_na_birthday = composers_no_na.agg(lambda c: c[0].birthday)
-    composers_no_na_gender = composers_no_na.agg(lambda c: c[0].gender)
-    composers_no_na_homepage = composers_no_na.agg(lambda c: c[0].homepage)
-    composers_no_na_place_of_birth = composers_no_na.agg(lambda c: c[0].place_of_birth)
-    composers_no_na_first_appearance_in_movie = composers_no_na.agg(lambda c: c[0].date_first_appearance)
-
-    # Print result
-    print(f'There is {na_composers_sum / len(composers) * 100:.2f}% of nan composers\n')
-    print(
-        'Considering the first composer of the list if multiple have been returned for a movie, we can compute the '
-        'following statistics on the retrieved data:\n')
-    print(
-        f'\t - There is {composers_no_na_name.isna().sum() / len(composers_no_na_name) * 100:.2f}% '
-        f'of nan name for composers')
-    print(
-        f'\t - There is {composers_no_na_birthday.isna().sum() / len(composers_no_na_birthday) * 100:.2f}% '
-        f'of nan birthday for composers')
-    print(
-        f'\t - There is {composers_no_na_gender.isna().sum() / len(composers_no_na_gender) * 100:.2f}% '
-        f'of nan gender for composers')
-    print(
-        f'\t - There is {composers_no_na_homepage.isna().sum() / len(composers_no_na_homepage) * 100:.2f}% '
-        f'of nan homepage for composers')
-    print(
-        f'\t - There is {composers_no_na_place_of_birth.isna().sum() / len(composers_no_na_place_of_birth) * 100:.2f}% '
-        f'of nan place of birth for composers')
-    print(
-        f'\t - There is {composers_no_na_first_appearance_in_movie.isna().sum() / len(composers_no_na_first_appearance_in_movie) * 100:.2f}% '
-        f'of nan first appearance in movie for composers')
-
-
 def load_movies(movie_metadata_path: str) -> pd.DataFrame:
     """Load movie metadata dataframe
 
@@ -147,6 +53,104 @@ def clean_movies(df: pd.DataFrame) -> pd.DataFrame:
     df_no_nans.drop_duplicates(subset=['name', 'release_date'], keep='first', inplace=True)
 
     return df_no_nans.reset_index(drop=True)
+
+
+def insight(x: pd.DataFrame) -> pd.DataFrame:
+    """Look at the dataframe and return a well-structured DataFrame resuming information of x.
+
+    Parameters
+    ----------
+    x: dataframe to gain insight
+
+    Returns
+    -------
+    Insight of dataframe x
+    """
+    # Initialize DataFrame giving data type for all column.
+    insight_df = pd.DataFrame(columns_type(x), index=x.columns, columns=["class"])
+
+    # Add statistical information
+    attributes_stats = None
+
+    # TODO: Create a function returning all information asked by TAs. Refer to notebook, first Markdown.
+    return insight_df
+
+
+def columns_type(x: pd.DataFrame) -> list:
+    """Return the type of all columns of a pandas DataFrame.
+
+    Parameters
+    ----------
+    x: dataframe to gain insight
+
+    Returns
+    -------
+    List of all types
+    """
+    # Clean the rows where there is Nan values to not interfer the result
+    x = x[~x.isnull().any(axis=1)]
+
+    # Check each column type(s) (if few of them, all are return)
+    columns_data_type = []
+    for column in x.columns:
+        column_data_types = x[column].apply(type)
+        column_data_types = column_data_types.unique()
+        columns_data_type.append(*column_data_types)
+
+    return columns_data_type
+
+
+def columns_stats(x: pd.DataFrame) -> dict:
+    pass
+
+
+def insight_clean_enrich(x: pd.DataFrame):
+    """Print a structured and relevant insight of the enhanced movie dataframe.
+
+    Parameters
+    ----------
+    x: dataframe to gain insight
+
+    Returns
+    -------
+    None
+    """
+    # Check the composer attribute
+    composers = x.composers
+    na_composers_sum = composers.isna().sum()
+
+    # Only check for first composer of the list if multiple are returned
+    composers_no_na = composers.dropna()
+    composers_no_na_name = composers_no_na.agg(lambda c: c[0].name)
+    composers_no_na_birthday = composers_no_na.agg(lambda c: c[0].birthday)
+    composers_no_na_gender = composers_no_na.agg(lambda c: c[0].gender)
+    composers_no_na_homepage = composers_no_na.agg(lambda c: c[0].homepage)
+    composers_no_na_place_of_birth = composers_no_na.agg(lambda c: c[0].place_of_birth)
+    composers_no_na_first_appearance_in_movie = composers_no_na.agg(lambda c: c[0].date_first_appearance)
+
+    # Print result
+    print(f'There is {na_composers_sum / len(composers) * 100:.2f}% of nan composers\n')
+    print(
+        'Considering the first composer of the list if multiple have been returned for a movie, we can compute the '
+        'following statistics on the retrieved data:\n')
+    print(
+        f'\t - There is {composers_no_na_name.isna().sum() / len(composers_no_na_name) * 100:.2f}% '
+        f'of nan name for composers')
+    print(
+        f'\t - There is {composers_no_na_birthday.isna().sum() / len(composers_no_na_birthday) * 100:.2f}% '
+        f'of nan birthday for composers')
+    print(
+        f'\t - There is {composers_no_na_gender.isna().sum() / len(composers_no_na_gender) * 100:.2f}% '
+        f'of nan gender for composers')
+    print(
+        f'\t - There is {composers_no_na_homepage.isna().sum() / len(composers_no_na_homepage) * 100:.2f}% '
+        f'of nan homepage for composers')
+    print(
+        f'\t - There is {composers_no_na_place_of_birth.isna().sum() / len(composers_no_na_place_of_birth) * 100:.2f}% '
+        f'of nan place of birth for composers')
+    print(
+        f'\t - There is {composers_no_na_first_appearance_in_movie.isna().sum() / len(composers_no_na_first_appearance_in_movie) * 100:.2f}% '
+        f'of nan first appearance in movie for composers')
 
 
 def main():

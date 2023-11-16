@@ -12,7 +12,7 @@ import requests
 from requests.exceptions import HTTPError
 
 from config import config
-from Composer import Composer
+from tmdb.Composer import Composer
 
 
 class TMDB:
@@ -281,6 +281,28 @@ class TMDB:
 
         return list(composers_nan)
 
+    async def _search_all_movie_revenue(self, urls: pandas.Series) -> list[int]:
+        """Retrieve list of revenue for the received list of urls
+
+                Parameters
+                ----------
+                urls: The list of urls which to query revenue from movie
+
+                Return
+                ------
+                A list of corresponding revenue
+                """
+        # perform the async request
+        movies_requests = [self._perform_async_request(url) if idx != -1 else self._async_sync_result({"revenue": 0})
+                           for (idx, url) in urls]
+        movies_responses = await asyncio.gather(*movies_requests)
+
+        results = map(
+            lambda response: np.nan if response['revenue'] is not None and response['revenue'] == 0 else response[
+                'revenue'], movies_responses)
+
+        return list(results)
+
     async def append_tmdb_movie_ids(self, df: pandas.DataFrame) -> pandas.DataFrame:
         """Retrieve list of ids for the received dataframe
 
@@ -333,5 +355,34 @@ class TMDB:
         # Append the composers to the dataframe
         res_df = df.copy()
         res_df['composers'] = results
+
+        return res_df
+
+    async def append_movie_revenue(self, df: pandas.DataFrame) -> pandas.DataFrame:
+        """Retrieve the revenue for the received dataframe
+
+        Parameters
+        ----------
+        df: The movies dataframe for which to append the revenue. Need tmdb_id column in dataframe
+
+        Return
+        ------
+        A copy of the received dataframe where the composers were append
+        """
+
+        # If tmdb ids not already present start by fetching them
+        if 'tmdb_id' not in df.columns:
+            df = await self.append_tmdb_movie_ids(df)
+
+        # Creates url to fetch all movies composers in credits
+        credit_movies_ids_urls = df.tmdb_id.apply(
+            lambda idx: (idx, f'{self._base_url}/movie/{idx}?language=en-US'))
+
+        # Performs requests
+        results = await self._search_all_movie_revenue(credit_movies_ids_urls)
+
+        # Append the composers to the dataframe
+        res_df = df.copy()
+        res_df['tmdb_revenue'] = results
 
         return res_df

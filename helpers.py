@@ -1,5 +1,6 @@
 import json
 
+import numpy as np
 import pandas as pd
 
 
@@ -105,7 +106,7 @@ def clean_movies(df: pd.DataFrame) -> pd.DataFrame:
         df_used_features[dic] = df_used_features[dic].apply(dict.values)
         df_used_features[dic] = df_used_features[dic].apply(list)
     # drop NaNs
-    df_no_nans = df_used_features.dropna().copy()
+    df_no_nans = df_used_features.dropna(subset=df_used_features.columns.difference(['box_office_revenue'])).copy()
     # keep only the year of the release date
     reg_map = lambda d: d.group(0)[:4]
     reg = r"\d{4}-\d{2}(-\d{2})?"
@@ -118,6 +119,13 @@ def clean_movies(df: pd.DataFrame) -> pd.DataFrame:
     df_no_nans.drop_duplicates(subset=['name', 'release_date'], keep='first', inplace=True)
 
     return df_no_nans.reset_index(drop=True)
+
+
+def clean_movies_revenue(df: pd.DataFrame) -> pd.DataFrame:
+    result = df.copy()
+    result["box_office_revenue"] = result.agg(
+        lambda x: x["box_office_revenue"] if not pd.isna(x["box_office_revenue"]) else x["tmdb_revenue"], axis=1)
+    return result.drop(["tmdb_revenue"], axis=1)
 
 
 def main():

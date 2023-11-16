@@ -8,7 +8,7 @@ import time
 
 import pandas
 
-from helpers import load_movies, clean_movies
+from helpers import load_movies, clean_movies, clean_movies_revenue
 from tmdb.tmdb import TMDB
 
 
@@ -29,15 +29,22 @@ async def enhanced_with_composer(movies: pandas.DataFrame):
         result.to_pickle('dataset/clean_enrich_movies.pickle')
 
 
+async def enhanced_with_revenue(movies: pandas.DataFrame) -> pandas.DataFrame:
+    async with TMDB() as tmdb:
+        # retrieve 8327 composers information in 150.43 seconds
+        result = await tmdb.append_movie_revenue(movies)
+        return result
+
 if __name__ == '__main__':
     # Load movies data set
     raw_movies = load_movies('dataset/MovieSummaries/movie.metadata.tsv')
 
     # Clean data to filter only observation with all needed features
-    cleaned_movies = clean_movies(raw_movies)
+    cleaned_movies_without_revenue_cleaned = clean_movies(raw_movies)
 
-    # Initialize list to store composer for all movies
-    movies_composers = []
+    res = asyncio.run(enhanced_with_revenue(cleaned_movies_without_revenue_cleaned))
+
+    cleaned_movies = clean_movies_revenue(res)
 
     # Retrieve composers of all movies
     asyncio.run(enhanced_with_composer(cleaned_movies))

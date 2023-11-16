@@ -1,4 +1,4 @@
-# Stanislas' dream needs help !
+# Stanislas' music dream : Road to Hollywood !
 
 ---
 
@@ -17,35 +17,55 @@ career. His ultimate dream? To hear one of his productions featured in a Hollywo
 top composers. To increase his chances, he turns to a team of Data Scientists known as LSD.
 
 The LSD team's mission is to identify trends shared among successful music composers and compositions, ultimately 
-optimizing choices for our young musician. The storyline focuses on American movies and Successful composers (successful
-meaning those who have produced soundtracks for high-grossing films, music appearing in more than ?? films, etc.)
+optimizing choices for our young musician. This is not an easy task but the team is driven by the wish of helping 
+Stanislas. How could they provoke a cascADA of successful choices in Stany career.
+
+Which music genre Stany should he focus on? Will this new direction be enough for him to conquers the show business? 
+Maybe he may invest in a ludicrous website to promote himself? Or should he even consider changing Nationality to 
+achieve his goal? Let’s see what’s the plan LSD had concocted for Stanislas.
+
 
 ## Research Questions
 
 1) Which are the most frequent music genre appearing in movies ?
-2) What is the average composer's age at their first movie appearance ?
-3) Where do composers come from ?
-4) Does composer's gender matter ?
-5) Does personal website is preferred ?
-6) What is the expected **fame** to appear in a movie ? (Challenging : **fame** can be quantified with the amount of 
-7) streams or CD selling for older compositors.)
+2) What is the average composer's age at their :
+   - first movie appearance ?
+   - biggest box office revenue ?
+3) How the top composers' career progress over the years ?
+4) Where do composers come from ?
+5) Does composer's gender matter ?
+6) Does having a personal website correlate with the composers' success ?
+7) Is there a correlation between box office revenue and movie's playlist popularity ?
 
-## Additional datasets
+## Dataset Enrichment Method
 
-List of needed information about movie's composer :
+Missing attributes about movie's composers :
+
 - Name
 - Birthday
 - Gender
 - Homepage
 - Place of birth
-- First appearance in movie
+- First appearance in movie credits
 
 We use a free to use API ([TMDB](https://www.themoviedb.org/?language=fr)) to enrich our movies' information. Also, some 
-important features are missing in some observation, we then drop movies not containing the needed information. A specific 
-script has been created to be run once and create our `clean_enrich_movie.pickle` dataset. Go to `enrich_data.py` and 
-its linked library `tmdb/tmdb.py` for more explanation on how we retrieved these information. Please note that a personal 
-API key is needed to successfully run the script ([create key](https://developer.themoviedb.org/reference/intro/getting-started)). 
-Make sure to create file `.env` with your API bearer token using the `.env_example` as template.
+important features are missing in some observation, that's why we dropped movies not containing the needed information. A specific 
+script has been created to be run once and create our `clean_enrich_movie.pickle` dataset. Go to `enrich_movie_data.py` and 
+its linked library `tmdb/tmdb.py` for more details on how we retrieved these information. 
+
+Missing attributes about composers' musics :
+
+- Genre
+- Spotify's popularity
+
+To retrieve these information we used the [SpotifyAPI](https://developer.spotify.com/documentation/web-api). Since 
+streams count are impossible to collect, we chose to use the [popularity score](https://developer.spotify.com/documentation/web-api/reference/get-track)
+(documentation of score at the end of web page) proposed by the API. Information are stored in `spotify_dataset.pickle`. 
+Go to `enrich_music_data.py` and its linked library `spotify/spotify.py` for more details on how we retrieved these information. 
+
+Please note that a personal API key is needed to successfully run the scripts for TMDB ([create key](https://developer.themoviedb.org/reference/intro/getting-started)) 
+and Spotify ([create key](https://developer.spotify.com/documentation/web-api/tutorials/getting-started)) dataset creation. 
+Make sure to create a file `.env` with your API bearer token using the `.env_example` file as template. 
 
 ## Methods
 
@@ -54,25 +74,25 @@ Talk about the API. What is the technology ? Why did we use it instead of alread
 ## Proposed timeline
 
 ```
-├── 20.11.23 - 
+├── 20.11.23 - Work Homework 2
 │  
-├── 23.11.23 - 
+├── 23.11.23 - Work Homework 2
 │  
-├── 27.11.23 -
+├── 27.11.23 - Work Question 1
 │  
-├── 30.11.23 -
+├── 30.11.23 - Work Question 2
 │  
 ├── 04.12.23 - Homework 2 deadline
 │  
-├── 04.12.23 -
+├── 04.12.23 - Work Question 3
 │  
-├── 07.12.23 -
+├── 07.12.23 - Work Questions 4 & 5
 |
-├── 11.12.23 - 
+├── 11.12.23 - Work Question 6 & 7
 │
-├── 14.12.23 - 
+├── 14.12.23 - Work on visualization/website
 │  
-├── 18.12.23 - 
+├── 18.12.23 - Work on visualization/website
 │    
 ├── 22.12.23 - Milestone 3 deadline
 │  
@@ -82,12 +102,10 @@ Talk about the API. What is the technology ? Why did we use it instead of alread
 
 ## Organization within the Team
 
-just a random example.
-
-| Date  | Xavier | Paulo            | David            | Luca              | Joris             |
-|-------|--------|------------------|------------------|-------------------|-------------------|
-| 27.11 | ...    | plot computation | plot computation | website structure | website structure |
-| 04.12 |        |                  |                  |                   |                   |
-| 21.12 |        |                  |                  |                   |                   |
+| Xavier       | Paulo   | David        | Luca    | Joris        |
+|--------------|---------|--------------|---------|--------------|
+| Q.7, Website | Q.1 + 4 | Q.2, Website | Q.6 + 5 | Q.3, Website |
 
 ## Questions for TAs
+
+None

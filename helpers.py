@@ -1,5 +1,4 @@
 import json
-
 import pandas as pd
 
 
@@ -14,8 +13,38 @@ def insight(x: pd.DataFrame) -> pd.DataFrame:
     -------
     Insight of dataframe x
     """
+    # Retrieve all column/attribute names
+    attributes_name = x.columns
+
+    # For all attribute, check the type
+    attributes_type = columns_type(x)
+
     # TODO: Create a function returning all information asked by TAs. Refer to notebook, first Markdown.
     return x.info(), x.describe()
+
+
+def columns_type(x: pd.DataFrame) -> list:
+    """Return the type of all columns of a pandas DataFrame.
+
+    Parameters
+    ----------
+    x: dataframe to gain insight
+
+    Returns
+    -------
+    List of all types
+    """
+    # Clean the rows where there is Nan values to not interfer the result
+    x = x[~x.isnull().any(axis=1)]
+
+    # Check each column type(s) (if few of them, all are return)
+    columns_data_type = []
+    for column in x.columns:
+        column_data_types = x[column].apply(type)
+        column_data_types = column_data_types.unique()
+        columns_data_type.append(column_data_types)
+
+    return columns_data_type
 
 
 def insight_clean_enrich(x: pd.DataFrame):

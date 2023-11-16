@@ -12,4 +12,5 @@ class Composer:
     gender: int = None
     homepage: str = None
     place_of_birth: str = None
-    first_appearance_in_movie: str = None
+    # First appearance of composer in movie credits
+    date_first_appearance: str = None

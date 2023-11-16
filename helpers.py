@@ -69,7 +69,7 @@ def insight_clean_enrich(x: pd.DataFrame):
     composers_no_na_gender = composers_no_na.agg(lambda c: c[0].gender)
     composers_no_na_homepage = composers_no_na.agg(lambda c: c[0].homepage)
     composers_no_na_place_of_birth = composers_no_na.agg(lambda c: c[0].place_of_birth)
-    composers_no_na_first_appearance_in_movie = composers_no_na.agg(lambda c: c[0].first_appearance_in_movie)
+    composers_no_na_first_appearance_in_movie = composers_no_na.agg(lambda c: c[0].date_first_appearance)
 
     # Print result
     print(f'There is {na_composers_sum / len(composers) * 100:.2f}% of nan composers\n')

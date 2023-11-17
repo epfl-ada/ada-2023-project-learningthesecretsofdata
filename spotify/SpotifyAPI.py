@@ -1,4 +1,5 @@
 import asyncio
+import time
 import urllib.parse
 
 import aiohttp
@@ -17,7 +18,8 @@ class SpotifyAPI:
             'Authorization': f'Bearer {config["SPOTIFY_ACCESS_TOKEN"]}',
             'Content-Type': 'application/json',
         }
-        self._session = aiohttp.ClientSession(connector=self._tcp_connector, headers=self._header)
+        timeout = aiohttp.ClientTimeout(total=None)
+        self._session = aiohttp.ClientSession(connector=self._tcp_connector, headers=self._header, timeout=timeout)
         self._base_url = 'https://api.spotify.com/v1/'
 
     async def __aenter__(self):
@@ -174,22 +176,115 @@ class SpotifyAPI:
 
         return music
 
-    async def append_music(self, composer_names: list) -> pd.DataFrame:
-        """Append the music to the spotify_dataset.pickle file"""
+    async def search_composers_by_name(self, names: list[str]) -> list[str]:
+        """
+        Search for the composer ids given a list of composer names
+
+        Parameters
+        ----------
+        names: list[str]
+            List of composer names
+
+        Return
+        ------
+        composer_ids: list[str]
+            List of composer ids
+        """
         result = await asyncio.gather(
             *[self._perform_async_request(f'{self._base_url}search?q={urllib.parse.quote(name)}&type=artist&limit=1')
-              for name in composer_names])
+              for name in names])
 
         composer_ids = [result['artists']['items'][0]['id'] for result in result if result['artists']['items']]
-        albums = await asyncio.gather(
-            *[self._perform_async_request(f'{self._base_url}artists/{id}/albums') for id in composer_ids])
-        albums_ids = [result['items'][0]['id'] for result in albums if result['items']]
-        tracks_id = await asyncio.gather(
-            *[self._perform_async_request(f'{self._base_url}albums/{album_id}/tracks') for album_id in albums_ids])
-        tracks_id = [result['items'][0]['id'] for result in tracks_id if result['items']]
+        return composer_ids
 
+    async def get_composers_albums_async(self, composers_id: list[str]) -> list:
+        """
+        Get the albums ids of all the composers
+
+        Parameters
+        ----------
+        composers_id: list[str]
+            List of composers ids
+
+        Return
+        ------
+        albums_ids: list[str]
+            List of albums ids
+        """
+        albums = await asyncio.gather(
+            *[self._perform_async_request(f'{self._base_url}artists/{id}/albums') for id in composers_id])
+        albums_items = [a['items'] for a in albums if a['items']]
+        albums_ids = [item['id'] for sublist in albums_items for item in sublist]
+        return albums_ids
+
+    async def get_albums_tracks_async(self, albums_ids: list[str]) -> list:
+        """
+        Get the tracks ids of all the albums
+
+        Parameters
+        ----------
+        albums_ids: list[str]
+            List of albums ids
+
+        Return
+        ------
+        tracks_ids: list[str]
+            List of tracks ids
+        """
         tracks = await asyncio.gather(
-            *[self._perform_async_request(f'{self._base_url}tracks/{track_id}') for track_id in tracks_id])
+            *[self._perform_async_request(f'{self._base_url}albums/{album_id}/tracks') for album_id in albums_ids])
+        tracks_items = [t['items'] for t in tracks if t['items']]
+        print(len(tracks_items))
+        tracks_id = []
+        ban_words = ["Remastered", "Remaster", "remaster", "live", "Live", "Bonus"]
+        for sublist in tracks_items:
+            for item in sublist:
+                if not any(word in item['name'] for word in ban_words):
+                    tracks_id.append(item['id'])
+        return tracks_id
+
+    async def get_tracks_from_tracks_ids(self, tracks_ids: list[str]) -> list[dict]:
+        """
+        Get the tracks from tracks ids
+
+        Parameters
+        ----------
+        tracks_ids: list[str]
+            List of tracks ids
+
+        Return
+        ------
+        tracks: list[dict]
+            List of tracks
+        """
+        tracks = await asyncio.gather(
+            *[self._perform_async_request(f'{self._base_url}tracks/{track_id}') for track_id in tracks_ids])
+        return tracks
+
+    async def append_music(self, composer_names: list) -> pd.DataFrame:
+        """Append the music to the spotify_dataset.pickle file
+
+        Parameters
+        ----------
+        composer_names: list
+            List of composers names
+
+        Return
+        -----
+        music: pd.DataFrame
+            Dataframe of the music tracks
+        """
+        # Limit the number of composers to 1 for Milestone 2 (to be removed for Milestone 3)
+        composer_names = composer_names[:1]
+
+        composer_ids = await self.search_composers_by_name(composer_names)
+        print("Composers: ", len(composer_ids))
+        albums_ids = await self.get_composers_albums_async(composer_ids)
+        print("Albums: ", len(albums_ids))
+        tracks_id = await self.get_albums_tracks_async(albums_ids)
+        print("Tracks: ", len(tracks_id))
+
+        tracks = await self.get_tracks_from_tracks_ids(tracks_id)
         musics = []
         for track in tracks:
             musics.append(self.get_music_from_track(track))

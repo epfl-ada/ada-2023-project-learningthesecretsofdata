@@ -30,7 +30,7 @@ async def get_music_dataset(composers_names: list):
 
         # Finally create a pickle file of this new dataframe
         # pickle, as it takes less space on disk
-        result.to_pickle('dataset/spotify_dataset.pickle')
+        result.to_csv('dataset/spotify_dataset.pickle')
 
 
 if __name__ == '__main__':

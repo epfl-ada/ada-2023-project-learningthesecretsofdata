@@ -12,14 +12,14 @@ from config import config
 from tmdb.Composer import Composer
 
 
-class TMDB:
+class TMDBDataLoader:
     """
     Class representing a tmdb connection, to perform some request in order to enhance the dataset with tmdb data
 
     This class should be instantiated inside an 'async with' block, to automatically close the session once the block
     is exited
 
-    e.g. async with TMDB() as tmdb:
+    e.g. async with TMDBDataLoader() as tmdb:
             tmdb.SOME_METHOD()
             ...
     """

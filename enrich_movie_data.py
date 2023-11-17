@@ -9,7 +9,7 @@ import time
 import pandas
 
 from helpers import load_movies, clean_movies, clean_movies_revenue
-from tmdb.tmdb import TMDB
+from tmdb.tmdbDataLoader import TMDBDataLoader
 
 
 async def enhanced_with_composer(movies: pandas.DataFrame):
@@ -20,7 +20,7 @@ async def enhanced_with_composer(movies: pandas.DataFrame):
     movies: the dataframe to enhance with the composers
 
     """
-    async with TMDB() as tmdb:
+    async with TMDBDataLoader() as tmdb:
         start_time = time.time()
 
         result = await tmdb.append_movie_composers(movies)
@@ -47,7 +47,7 @@ async def enhanced_with_revenue(movies: pandas.DataFrame, chunk_size=15000) -> p
     -------
     The enhanced dataset
     """
-    async with TMDB() as tmdb:
+    async with TMDBDataLoader() as tmdb:
         result = await tmdb.append_movie_revenue(movies, chunk_size)
         return result
 

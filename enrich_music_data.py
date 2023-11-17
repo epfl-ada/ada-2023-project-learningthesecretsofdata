@@ -2,7 +2,7 @@ import asyncio
 
 import pandas as pd
 
-from spotify.SpotifyAPI import SpotifyAPI
+from spotify.SpotifyDataLoader import SpotifyDataLoader
 import time
 
 
@@ -19,7 +19,7 @@ async def get_music_dataset(composers_names: list):
     -------
     None
     """
-    async with SpotifyAPI() as spotify:
+    async with SpotifyDataLoader() as spotify:
         start_time = time.time()
 
         result = await spotify.append_music(composers_names)

@@ -78,7 +78,6 @@ def clean_movies_revenue(df: pd.DataFrame) -> pd.DataFrame:
     return result.reset_index(drop=True)
 
 
-
 def insight(x: pd.DataFrame):
     """Display a structured and relevant insight of the current movie dataframe.
 
@@ -94,7 +93,7 @@ def insight(x: pd.DataFrame):
     insight_df = pd.DataFrame(columns_type(x), index=x.columns, columns=["class"])
 
     # Add missing values information
-    insight_df["missing_values"] = (x.isna().sum()/x.shape[0]*100).round(2)
+    insight_df["missing_values"] = (x.isna().sum() / x.shape[0] * 100).round(2)
 
     display(insight_df)
 
@@ -143,12 +142,12 @@ def insight_enhance(x: pd.DataFrame):
 
     # Only check for first composer of the list if multiple are returned
     composers_no_na = composers.dropna()
-    composers_no_na_name = composers_no_na.agg(lambda c: c[0].name)
-    composers_no_na_birthday = composers_no_na.agg(lambda c: c[0].birthday)
-    composers_no_na_gender = composers_no_na.agg(lambda c: c[0].gender)
-    composers_no_na_homepage = composers_no_na.agg(lambda c: c[0].homepage)
-    composers_no_na_place_of_birth = composers_no_na.agg(lambda c: c[0].place_of_birth)
-    composers_no_na_first_appearance_in_movie = composers_no_na.agg(lambda c: c[0].date_first_appearance)
+    composers_no_na_name = composers_no_na.transform(lambda c: c[0].name)
+    composers_no_na_birthday = composers_no_na.transform(lambda c: c[0].birthday)
+    composers_no_na_gender = composers_no_na.transform(lambda c: c[0].gender)
+    composers_no_na_homepage = composers_no_na.transform(lambda c: c[0].homepage)
+    composers_no_na_place_of_birth = composers_no_na.transform(lambda c: c[0].place_of_birth)
+    composers_no_na_first_appearance_in_movie = composers_no_na.transform(lambda c: c[0].date_first_appearance)
 
     # Print result
     print(f'There is {na_composers_sum / len(composers) * 100:.2f}% of nan composers\n')

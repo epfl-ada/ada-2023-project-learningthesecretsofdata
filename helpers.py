@@ -1,5 +1,6 @@
 import json
 import pandas as pd
+from IPython.core.display_functions import display
 
 
 def load_movies(movie_metadata_path: str) -> pd.DataFrame:
@@ -77,8 +78,9 @@ def clean_movies_revenue(df: pd.DataFrame) -> pd.DataFrame:
     return result.reset_index(drop=True)
 
 
-def insight(x: pd.DataFrame) -> pd.DataFrame:
-    """Look at the dataframe and return a well-structured DataFrame resuming information of x.
+
+def insight(x: pd.DataFrame):
+    """Display a structured and relevant insight of the current movie dataframe.
 
     Parameters
     ----------
@@ -86,16 +88,15 @@ def insight(x: pd.DataFrame) -> pd.DataFrame:
 
     Returns
     -------
-    Insight of dataframe x
+    None
     """
     # Initialize DataFrame giving data type for all column.
     insight_df = pd.DataFrame(columns_type(x), index=x.columns, columns=["class"])
 
-    # Add statistical information
-    attributes_stats = None
+    # Add missing values information
+    insight_df["missing_values"] = (x.isna().sum()/x.shape[0]*100).round(2)
 
-    # TODO: Create a function returning all information asked by TAs. Refer to notebook, first Markdown.
-    return insight_df
+    display(insight_df)
 
 
 def columns_type(x: pd.DataFrame) -> list:
@@ -122,12 +123,8 @@ def columns_type(x: pd.DataFrame) -> list:
     return columns_data_type
 
 
-def columns_stats(x: pd.DataFrame) -> dict:
-    pass
-
-
-def insight_clean_enrich(x: pd.DataFrame):
-    """Print a structured and relevant insight of the enhanced movie dataframe.
+def insight_enhance(x: pd.DataFrame):
+    """Display a structured and relevant insight of the enhanced movie dataframe.
 
     Parameters
     ----------
@@ -137,7 +134,10 @@ def insight_clean_enrich(x: pd.DataFrame):
     -------
     None
     """
-    # Check the composer attribute
+    # Initialize the dataframe with statistical insight of box_office_revenue
+    display(x.box_office_revenue.describe())
+
+    # Gain insight over movies' composers
     composers = x.composers
     na_composers_sum = composers.isna().sum()
 
@@ -173,13 +173,3 @@ def insight_clean_enrich(x: pd.DataFrame):
     print(
         f'\t - There is {composers_no_na_first_appearance_in_movie.isna().sum() / len(composers_no_na_first_appearance_in_movie) * 100:.2f}% '
         f'of nan first appearance in movie for composers')
-
-
-def main():
-    df = clean_movies(load_movies('dataset/MovieSummaries/movie.metadata.tsv'))
-    df.info()
-    df.to_csv("dataset/tmp.csv")
-
-
-if __name__ == "__main__":
-    main()

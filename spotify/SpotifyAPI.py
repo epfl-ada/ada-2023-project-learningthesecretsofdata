@@ -1,5 +1,4 @@
 import asyncio
-import time
 import urllib.parse
 
 import aiohttp
@@ -214,7 +213,10 @@ class SpotifyAPI:
         albums = await asyncio.gather(
             *[self._perform_async_request(f'{self._base_url}artists/{id}/albums') for id in composers_id])
         albums_items = [a['items'] for a in albums if a['items']]
-        albums_ids = [item['id'] for sublist in albums_items for item in sublist]
+        albums_ids = []
+        for sublist in albums_items:
+            for item in sublist:
+                albums_ids.append(item['id'])
         return albums_ids
 
     async def get_albums_tracks_async(self, albums_ids: list[str]) -> list:

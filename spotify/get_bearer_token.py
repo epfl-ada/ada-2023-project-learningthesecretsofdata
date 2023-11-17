@@ -4,6 +4,7 @@ Be careful, the token expires after 1 hour.
 """
 
 import requests
+import os
 
 from config import config
 
@@ -25,8 +26,11 @@ if __name__ == '__main__':
     auth_response_data = auth_response.json()
 
     # Save the access token to .env file
-    # WARNING : You need to delete the previous access token in the .env file
     access_token = auth_response_data['access_token']
-    file = open('../.env', 'a')
-    file.write(f'SPOTIFY_ACCESS_TOKEN="{access_token}"\n')
-    file.close()
+    with open('../.env', 'r') as old_env:
+        with open('../tmp', 'w') as new_env:
+            for line in old_env:
+                if not line.strip('\n').startswith('SPOTIFY_ACCESS_TOKEN'):
+                    new_env.write(line)
+            new_env.write(f'SPOTIFY_ACCESS_TOKEN="{access_token}"\n')
+    os.replace('../tmp', '../.env')

@@ -1,5 +1,6 @@
 import json
 import pandas as pd
+from IPython.core.display_functions import display
 
 
 def load_movies(movie_metadata_path: str) -> pd.DataFrame:
@@ -39,8 +40,8 @@ def clean_movies(df: pd.DataFrame) -> pd.DataFrame:
         df_used_features[dic] = df_used_features[dic].apply(json.loads)
         df_used_features[dic] = df_used_features[dic].apply(dict.values)
         df_used_features[dic] = df_used_features[dic].apply(list)
-    # drop NaNs
-    df_no_nans = df_used_features.dropna().copy()
+    # drop NaNs excepts from box_office_revenue
+    df_no_nans = df_used_features.dropna(subset=df_used_features.columns.difference(['box_office_revenue'])).copy()
     # keep only the year of the release date
     reg_map = lambda d: d.group(0)[:4]
     reg = r"\d{4}-\d{2}(-\d{2})?"
@@ -55,8 +56,31 @@ def clean_movies(df: pd.DataFrame) -> pd.DataFrame:
     return df_no_nans.reset_index(drop=True)
 
 
-def insight(x: pd.DataFrame) -> pd.DataFrame:
-    """Look at the dataframe and return a well-structured DataFrame resuming information of x.
+def clean_movies_revenue(df: pd.DataFrame) -> pd.DataFrame:
+    """Merge the revenue, by keeping the one from the cmu if present, otherwise keep the one retrieved from tmdb.
+    then drop the nan values and return the result.
+
+    Parameters
+    ----------
+    df: dataframe with the revenue retrieved from tmdb
+
+    Returns
+    -------
+    The cleaned dataset
+    """
+    result = df.copy()
+    result["box_office_revenue"] = result.agg(
+        lambda x: x["box_office_revenue"] if not pd.isna(x["box_office_revenue"]) else x["tmdb_revenue"], axis=1)
+
+    result = result.drop(["tmdb_revenue"], axis=1).dropna(subset='box_office_revenue')
+    # sort by box_office_revenue
+    result.sort_values(by='box_office_revenue', axis='rows', ascending=False, inplace=True)
+    return result.reset_index(drop=True)
+
+
+
+def insight(x: pd.DataFrame):
+    """Display a structured and relevant insight of the current movie dataframe.
 
     Parameters
     ----------
@@ -64,16 +88,15 @@ def insight(x: pd.DataFrame) -> pd.DataFrame:
 
     Returns
     -------
-    Insight of dataframe x
+    None
     """
     # Initialize DataFrame giving data type for all column.
     insight_df = pd.DataFrame(columns_type(x), index=x.columns, columns=["class"])
 
-    # Add statistical information
-    attributes_stats = None
+    # Add missing values information
+    insight_df["missing_values"] = (x.isna().sum()/x.shape[0]*100).round(2)
 
-    # TODO: Create a function returning all information asked by TAs. Refer to notebook, first Markdown.
-    return insight_df
+    display(insight_df)
 
 
 def columns_type(x: pd.DataFrame) -> list:
@@ -87,7 +110,7 @@ def columns_type(x: pd.DataFrame) -> list:
     -------
     List of all types
     """
-    # Clean the rows where there is Nan values to not interfer the result
+    # Clean the rows where there is Nan values to not interfere the result
     x = x[~x.isnull().any(axis=1)]
 
     # Check each column type(s) (if few of them, all are return)
@@ -100,12 +123,8 @@ def columns_type(x: pd.DataFrame) -> list:
     return columns_data_type
 
 
-def columns_stats(x: pd.DataFrame) -> dict:
-    pass
-
-
-def insight_clean_enrich(x: pd.DataFrame):
-    """Print a structured and relevant insight of the enhanced movie dataframe.
+def insight_enhance(x: pd.DataFrame):
+    """Display a structured and relevant insight of the enhanced movie dataframe.
 
     Parameters
     ----------
@@ -115,7 +134,10 @@ def insight_clean_enrich(x: pd.DataFrame):
     -------
     None
     """
-    # Check the composer attribute
+    # Initialize the dataframe with statistical insight of box_office_revenue
+    display(x.box_office_revenue.describe())
+
+    # Gain insight over movies' composers
     composers = x.composers
     na_composers_sum = composers.isna().sum()
 
@@ -151,13 +173,3 @@ def insight_clean_enrich(x: pd.DataFrame):
     print(
         f'\t - There is {composers_no_na_first_appearance_in_movie.isna().sum() / len(composers_no_na_first_appearance_in_movie) * 100:.2f}% '
         f'of nan first appearance in movie for composers')
-
-
-def main():
-    df = clean_movies(load_movies('dataset/MovieSummaries/movie.metadata.tsv'))
-    df.info()
-    df.to_csv("dataset/tmp.csv")
-
-
-if __name__ == "__main__":
-    main()

@@ -1,5 +1,3 @@
-"""Explain the existence of this python file"""
-
 import asyncio
 import datetime
 import urllib.parse
@@ -8,7 +6,6 @@ from datetime import datetime
 import aiohttp
 import numpy as np
 import pandas
-import requests
 from requests.exceptions import HTTPError
 
 from config import config
@@ -27,16 +24,21 @@ class TMDB:
             ...
     """
 
-    def __init__(self):
+    def __init__(self, debug=True):
         # Create special connector to limit number of connection per host
         self._tcp_connector = aiohttp.TCPConnector(limit_per_host=50)
         # Create header to use with the session
         self._header = headers = {"accept": "application/json",
                                   "Authorization": f"Bearer {config['TMDB_BEARER_TOKEN']}"}
+
+        # create a timeout set to None, to bypass the timeout and prevent error after 5min, which is the default timeout
+        timeout = aiohttp.ClientTimeout(total=None)
         # create the session
-        self._session = aiohttp.ClientSession(headers=headers, connector=self._tcp_connector)
+        self._session = aiohttp.ClientSession(headers=headers, connector=self._tcp_connector, timeout=timeout)
 
         self._base_url = "https://api.themoviedb.org/3"
+
+        self._debug = debug
 
     async def __aenter__(self):
         """ Method called when entering the 'async with' block
@@ -53,103 +55,15 @@ class TMDB:
         """
         await self._session.close()
 
-    def _perform_request(self, url) -> dict:
-        """Perform specific request given a URL
-
-        Parameters
-        ----------
-        url: correct formatted endpoint/url
-
-        Return
-        ------
-        Result of the request
-        """
-
-        try:
-            response = requests.get(url, headers=self._header)
-            response.raise_for_status()
-            return response.json()
-        except HTTPError as exc:
-            print(f'Error while performing request: {exc.response} \n {exc.request}')
-            raise HTTPError()
-
-    def search_movie_id(self, movie_name: str, year: int, language: str = 'en-US',
-                        adult: bool = True) -> int:
-        """Retrieve data of a movie using TMDB API
-
-        Parameters
-        ----------
-        movie_name: name of the movie
-        year: movie release date
-        language: movie language
-        adult: movie for adult
-
-        Return
-        ------
-        Movie ID result of API request
-        """
-        url = (f"{self._base_url}/search/movie?"
-               f"query={urllib.parse.quote(movie_name)}&"
-               f"include_adult={adult}&"
-               f"language={urllib.parse.quote(language)}&"
-               f"page=1&year={year}")
-
-        movie_infos_results = self._perform_request(url)['results']
-        return movie_infos_results[0]['id'] if movie_infos_results else -1
-
-    def search_movie_credits(self, movie_id) -> dict:
-        """Retrieve all the movie credits
-
-        Parameters
-        ----------
-        movie_id: id of specific movie
-
-        Return
-        ------
-        Dictionary of movie credits
-        """
-        # TMDb API endpoint for movie details including credits
-        movie_url = f'{self._base_url}/movie/{movie_id}/credits?language=en-US'
-
-        # GET request to the TMDb API for the movie details
-        movie_response = self._perform_request(movie_url)
-        movie_credits = movie_response
-
-        return movie_credits
-
-    def movie_composer(self, movie_name: str, year: int, language: str = 'en-US',
-                       adult: bool = True) -> list[str]:
-        """Retrieve the movie composer
-
-        Parameters
-        ----------
-        movie_name: name of the movie
-        year: movie release date
-        language: movie language
-        adult: movie for adult
-
-        Return
-        ------
-        Movie soundtrack composer
-        """
-        # Retrieve information about movie credits
-        movie_id = self.search_movie_id(movie_name, year, language, adult)
-
-        if movie_id == -1:
-            return []
-        else:
-            movie_credits = self.search_movie_credits(movie_id)
-
-            # Search for composer in the crew information in the movie's credits
-            composers = [person['name'] for person in movie_credits['crew'] if 'composer' in person['job'].lower()]
-            return composers
-
-    async def _perform_async_request(self, url: str):
+    async def _perform_async_request(self, url: str, request_nb: int, request_descr: str):
         """Perform specific request asynchronously given a URL
 
         Parameters
         ----------
         url: correct formatted endpoint/url
+        request_nb: The index of the request we are processing, to be able to print a debug status of the
+        execution status
+        request_descr: A quick description of the request, to have a context in the debug print
 
         Return
         ------
@@ -159,7 +73,10 @@ class TMDB:
         try:
             async with self._session.get(url) as response:
                 response.raise_for_status()
-                return await response.json()
+                response = await response.json()
+                if self._debug and request_nb % 1000 == 0:
+                    print(f'{request_descr} - nb: {request_nb} - completed.')
+                return response
         except HTTPError as e:
             print(f'Error while performing request: {e}')
             raise e
@@ -176,7 +93,7 @@ class TMDB:
         The list of movie ids
         """
 
-        ids_requests = [self._perform_async_request(url) for url in urls]
+        ids_requests = [self._perform_async_request(url, int(idx), 'request movie id') for idx, url in urls.items()]
         ids_responses = await asyncio.gather(*ids_requests)
 
         results = map(lambda response: response['results'], ids_responses)
@@ -216,13 +133,14 @@ class TMDB:
         min_date = min(list_release_date)
         return min_date.strftime('%Y-%m-%d')
 
-    async def _search_all_composers(self, person_ids) -> list[Composer]:
+    async def _search_all_composers(self, person_ids, idx) -> list[Composer]:
         """
         Helper function to query all the composers that appears in a movie
         
         Parameters
         ----------
         person_urls The list of url for the composers of the movie
+        idx: The list index of the movie we are currently processing
 
         Returns
         -------
@@ -234,7 +152,7 @@ class TMDB:
                           f'{self._base_url}/person/{composer_id}?append_to_response=movie_credits&language=en-US',
                           person_ids)
 
-        request_person = [self._perform_async_request(url) for url in person_urls]
+        request_person = [self._perform_async_request(url, idx, 'request person details') for url in person_urls]
         responses_person = await asyncio.gather(*request_person)
 
         composers = map(
@@ -258,8 +176,10 @@ class TMDB:
         """
 
         # request the cast to retrieve the ids of the composer
-        requests_cast = [self._perform_async_request(url) if idx != -1 else self._async_sync_result([]) for
-                         (idx, url) in ids_urls]
+        requests_cast = [self._perform_async_request(url, int(row_idx), 'request movie composer')
+                         if idx != -1 else self._async_sync_result([])
+                         for row_idx, (idx, url) in ids_urls.items()]
+
         responses_cast = await asyncio.gather(*requests_cast)
 
         # map cast to only crew
@@ -271,15 +191,40 @@ class TMDB:
             crews)
 
         # request the composer from his id
-        requests_composer = [
-            self._search_all_composers(person_ids) if person_ids else self._async_sync_result([]) for
-            person_ids in list_composer_ids]
+        requests_composer = [self._search_all_composers(person_ids, idx)
+                             if person_ids else self._async_sync_result([])
+                             for idx, person_ids in enumerate(list_composer_ids)]
+
         responses_composer = await asyncio.gather(*requests_composer)
 
         # map empty list to nan values
         composers_nan = map(lambda composers: composers if composers else np.nan, responses_composer)
 
         return list(composers_nan)
+
+    async def _search_all_movie_revenue(self, urls: pandas.Series) -> list[int]:
+        """Retrieve list of revenue for the received list of urls
+
+                Parameters
+                ----------
+                urls: The list of urls which to query revenue from movie
+
+                Return
+                ------
+                A list of corresponding revenue
+                """
+        # perform the async request
+        movies_requests = [self._perform_async_request(url, int(row_idx), 'request movie revenue')
+                           if idx != -1 else self._async_sync_result({"revenue": 0})
+                           for row_idx, (idx, url) in urls.items()]
+
+        movies_responses = await asyncio.gather(*movies_requests)
+
+        results = map(
+            lambda response: np.nan if response['revenue'] is not None and response['revenue'] == 0 else
+            response['revenue'], movies_responses)
+
+        return list(results)
 
     async def append_tmdb_movie_ids(self, df: pandas.DataFrame) -> pandas.DataFrame:
         """Retrieve list of ids for the received dataframe
@@ -335,3 +280,70 @@ class TMDB:
         res_df['composers'] = results
 
         return res_df
+
+    @staticmethod
+    def _generate_df_chunk(df: pandas.DataFrame, chunk_size: int):
+        """ Helper function to return a Generator with the dataframe chunked
+
+        Parameters
+        ----------
+        df: The dataframe to split into chunks
+        chunk_size: The to use to chunk the dataframe
+
+        Returns
+        -------
+        A tuple with the start index, end index and the dataframe chunk
+
+        """
+        start = 0
+        end = chunk_size
+        while end < len(df):
+            yield start, end, df.iloc[start:end]
+            start = end
+            end += chunk_size
+        yield start, end, df.iloc[start:len(df)]
+
+    async def append_movie_revenue(self, df: pandas.DataFrame, chunk_size=15000) -> pandas.DataFrame:
+        """Retrieve the revenue for the received dataframe
+
+        Parameters
+        ----------
+        df: The movies dataframe for which to append the revenue. Need tmdb_id column in dataframe
+        chunk_size: The size of the chunk
+
+        Return
+        ------
+        A copy of the received dataframe where the composers were append
+        """
+
+        res = df.copy()
+        # prepared df with new column
+        res = res.reindex(columns=list(set(res.columns.tolist() + ['tmdb_id', 'tmdb_revenue'])))
+
+        # chunked the dataframe querying to retry chunk upon failure
+        for start, end, df_chunk in self._generate_df_chunk(df, chunk_size):
+            retry = True
+            while retry:
+                try:
+                    # Fetch and append tmdb_id to the df
+                    df_chunk = await self.append_tmdb_movie_ids(df_chunk)
+
+                    # add tmdb_id to res
+                    res.iloc[start:end].loc[:, 'tmdb_id'] = df_chunk['tmdb_id']
+
+                    # Creates url to fetch all movies composers in credits
+                    movies_ids_urls = df_chunk.tmdb_id.apply(
+                        lambda idx: (idx, f'{self._base_url}/movie/{idx}?language=en-US'))
+
+                    # Performs requests
+                    results = await self._search_all_movie_revenue(movies_ids_urls)
+
+                    # Append the revenue to the dataframe
+                    res.iloc[start:end].loc[:, 'tmdb_revenue'] = results
+
+                    # if everything ok, go out of while
+                    retry = False
+                except Exception as e:
+                    print(f'Received error: {e}, retry for block {start} - {end}')
+
+        return res

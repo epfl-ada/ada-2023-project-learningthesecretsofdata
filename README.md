@@ -78,7 +78,11 @@ dataset to answer the question 1 & 7.
 
 ### Data Cleaning
 
-# TODO
+We clean the data by removing the entry with missing value in their features 'name', 'release_date',
+'countries', 'genres'. For missing 'box_office_revenue', we call TMDB API to try to retrieve the information. 
+If the API call fails to return a value for the revenue, we remove the entry.
+We also format the release date to integer and sort the data by revenue.
+
 
 ### Data Visualization
 

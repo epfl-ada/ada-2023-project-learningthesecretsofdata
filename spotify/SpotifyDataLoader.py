@@ -142,7 +142,7 @@ class SpotifyDataLoader:
                     tracks_id.append(item['id'])
         return tracks_id
 
-    async def get_tracks_from_tracks_ids(self, tracks_ids: list[str]) -> list:
+    async def get_tracks_from_tracks_ids(self, tracks_ids: list[str]):
         """
         Get the tracks from tracks ids
 

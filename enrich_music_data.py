@@ -36,6 +36,7 @@ async def get_music_dataset(composers_names: list):
 if __name__ == '__main__':
     m = pd.read_pickle('dataset/clean_enrich_movies.pickle')
     list_composers = m['composers'].dropna().tolist()
+    # Flatten the list
     list_composers = [item for sublist in list_composers for item in sublist]
     composers_names = [c.name for c in list_composers]
     composers_names = list(set(composers_names))

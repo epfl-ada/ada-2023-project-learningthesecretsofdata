@@ -46,20 +46,6 @@ class SpotifyDataLoader:
             print(f'Error while performing request: {e}')
             raise e
 
-    @staticmethod
-    async def _async_sync_result(ret):
-        """ Helper function to simulate an asynchron function
-
-        Parameter
-        ---------
-        ret: the parameter to return
-
-        Return
-        ------
-        The ret parameter
-        """
-        return ret
-
     async def get_music_from_track(self, track: dict) -> Music:
         """Get the music Object from a track
 
@@ -122,7 +108,7 @@ class SpotifyDataLoader:
             List of albums ids
         """
         albums = await asyncio.gather(
-            *[self._perform_async_request(f'{self._base_url}artists/{id}/albums') for id in composers_id])
+            *[self._perform_async_request(f'{self._base_url}artists/{artist_id}/albums') for artist_id in composers_id])
         albums_items = [a['items'] for a in albums if a['items']]
         albums_ids = []
         for sublist in albums_items:

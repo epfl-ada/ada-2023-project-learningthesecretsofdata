@@ -13,7 +13,7 @@ async def get_music_dataset(composers_names: list):
     Parameters
     ----------
     composers_names: list
-        List of composers names
+    List of composers names
 
     Returns
     -------
@@ -28,12 +28,11 @@ async def get_music_dataset(composers_names: list):
 
         print(f'Elapsed time: {end_time - start_time}')
 
-        # Finally create a pickle file of this new dataframe
-        # pickle, as it takes less space on disk
+        # Finally create a pickle file of this new dataframe, as it takes less space on disk
         result.to_pickle('dataset/spotify_dataset.pickle')
 
 
-if __name__ == '__main__':
+def main():
     m = pd.read_pickle('dataset/clean_enrich_movies.pickle')
     list_composers = m['composers'].dropna().tolist()
     # Flatten the list
@@ -43,3 +42,5 @@ if __name__ == '__main__':
     asyncio.run(get_music_dataset(composers_names))
 
 
+if __name__ == '__main__':
+    main()

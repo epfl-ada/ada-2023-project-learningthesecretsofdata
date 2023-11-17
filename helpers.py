@@ -39,7 +39,7 @@ def clean_movies(df: pd.DataFrame) -> pd.DataFrame:
         df_used_features[dic] = df_used_features[dic].apply(json.loads)
         df_used_features[dic] = df_used_features[dic].apply(dict.values)
         df_used_features[dic] = df_used_features[dic].apply(list)
-    # drop NaNs
+    # drop NaNs excepts from box_office_revenue
     df_no_nans = df_used_features.dropna(subset=df_used_features.columns.difference(['box_office_revenue'])).copy()
     # keep only the year of the release date
     reg_map = lambda d: d.group(0)[:4]
@@ -54,11 +54,28 @@ def clean_movies(df: pd.DataFrame) -> pd.DataFrame:
 
     return df_no_nans.reset_index(drop=True)
 
+
 def clean_movies_revenue(df: pd.DataFrame) -> pd.DataFrame:
+    """Merge the revenue, by keeping the one from the cmu if present, otherwise keep the one retrieved from tmdb.
+    then drop the nan values and return the result.
+
+    Parameters
+    ----------
+    df: dataframe with the revenue retrieved from tmdb
+
+    Returns
+    -------
+    The cleaned dataset
+    """
     result = df.copy()
     result["box_office_revenue"] = result.agg(
         lambda x: x["box_office_revenue"] if not pd.isna(x["box_office_revenue"]) else x["tmdb_revenue"], axis=1)
-    return result.drop(["tmdb_revenue"], axis=1)
+
+    result = result.drop(["tmdb_revenue"], axis=1).dropna(subset='box_office_revenue')
+    # sort by box_office_revenue
+    result.sort_values(by='box_office_revenue', axis='rows', ascending=False, inplace=True)
+    return result.reset_index(drop=True)
+
 
 def insight(x: pd.DataFrame) -> pd.DataFrame:
     """Look at the dataframe and return a well-structured DataFrame resuming information of x.
@@ -92,7 +109,7 @@ def columns_type(x: pd.DataFrame) -> list:
     -------
     List of all types
     """
-    # Clean the rows where there is Nan values to not interfer the result
+    # Clean the rows where there is Nan values to not interfere the result
     x = x[~x.isnull().any(axis=1)]
 
     # Check each column type(s) (if few of them, all are return)

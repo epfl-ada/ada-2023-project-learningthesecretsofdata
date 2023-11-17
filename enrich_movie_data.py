@@ -13,10 +13,16 @@ from tmdb.tmdb import TMDB
 
 
 async def enhanced_with_composer(movies: pandas.DataFrame):
+    """Enhanced the dataset with the composers, and directly save it as a pickle
+
+    Parameters
+    ----------
+    movies: the dataframe to enhance with the composers
+
+    """
     async with TMDB() as tmdb:
         start_time = time.time()
 
-        # retrieve 8327 composers information in 150.43 seconds
         result = await tmdb.append_movie_composers(movies)
 
         end_time = time.time()
@@ -29,11 +35,22 @@ async def enhanced_with_composer(movies: pandas.DataFrame):
         result.to_pickle('dataset/clean_enrich_movies.pickle')
 
 
-async def enhanced_with_revenue(movies: pandas.DataFrame) -> pandas.DataFrame:
+async def enhanced_with_revenue(movies: pandas.DataFrame, chunk_size=15000) -> pandas.DataFrame:
+    """Enhanced the dataset with the revenue
+
+    Parameters
+    ----------
+    movies: The dataset of the movie to enhanced
+    chunk_size: The size of the chunk to split the requests to periodically save the work in case of an error
+
+    Returns
+    -------
+    The enhanced dataset
+    """
     async with TMDB() as tmdb:
-        # retrieve 8327 composers information in 150.43 seconds
-        result = await tmdb.append_movie_revenue(movies)
+        result = await tmdb.append_movie_revenue(movies, chunk_size)
         return result
+
 
 if __name__ == '__main__':
     # Load movies data set
@@ -42,8 +59,8 @@ if __name__ == '__main__':
     # Clean data to filter only observation with all needed features
     cleaned_movies_without_revenue_cleaned = clean_movies(raw_movies)
 
-    res = asyncio.run(enhanced_with_revenue(cleaned_movies_without_revenue_cleaned))
-
+    # Merge revenue from cmu and tmdb and drop nan
+    res = asyncio.run(enhanced_with_revenue(cleaned_movies_without_revenue_cleaned, 15000))
     cleaned_movies = clean_movies_revenue(res)
 
     # Retrieve composers of all movies

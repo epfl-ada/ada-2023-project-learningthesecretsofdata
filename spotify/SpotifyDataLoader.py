@@ -184,7 +184,5 @@ class SpotifyDataLoader:
         print("Tracks: ", len(tracks_id))
 
         tracks = await self.get_tracks_from_tracks_ids(tracks_id)
-        musics = []
-        for track in tracks:
-            musics.append(self.get_music_from_track(track))
+        musics = await asyncio.gather(*[self.get_music_from_track(track) for track in tracks])
         return pd.DataFrame(musics)

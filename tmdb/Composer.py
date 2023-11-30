@@ -14,3 +14,11 @@ class Composer:
     place_of_birth: str = None
     # First appearance of composer in movie credits
     date_first_appearance: str = None
+
+    def __hash__(self):
+        return hash(self.id) ^ hash(self.name)
+
+    def __eq__(self, other):
+        if isinstance(other, Composer):
+            return self.id == other.id
+        return False

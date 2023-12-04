@@ -22,14 +22,15 @@ async def get_music_dataset(composers_names: list):
     async with SpotifyDataLoader() as spotify:
         start_time = time.time()
 
-        result = await spotify.append_music(composers_names)
+        result = await spotify.create_composers_table(composers_names)
 
         end_time = time.time()
 
         print(f'Elapsed time: {end_time - start_time}')
 
         # Finally create a pickle file of this new dataframe, as it takes less space on disk
-        result.to_pickle('dataset/spotify_dataset.pickle')
+        result.to_pickle('dataset/spotify_composers_dataset.pickle')
+        result.to_csv('dataset/spotify_composers_dataset.csv')
 
 
 def main():

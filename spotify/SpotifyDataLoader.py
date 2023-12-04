@@ -1,4 +1,5 @@
 import asyncio
+import time
 import urllib.parse
 
 import aiohttp
@@ -6,6 +7,7 @@ import pandas as pd
 from requests.exceptions import HTTPError
 
 from config import config
+from spotify.Composer_Spotify import ComposerSpotify
 from spotify.Music import Music
 
 
@@ -86,6 +88,7 @@ class SpotifyDataLoader:
         composer_ids: list[str]
             List of composer ids
         """
+
         result = await asyncio.gather(
             *[self._perform_async_request(f'{self._base_url}search?q={urllib.parse.quote(name)}&type=artist&limit=1')
               for name in names])
@@ -186,3 +189,55 @@ class SpotifyDataLoader:
         tracks = await self.get_tracks_from_tracks_ids(tracks_id)
         musics = await asyncio.gather(*[self.get_music_from_track(track) for track in tracks])
         return pd.DataFrame(musics)
+
+    async def create_composers_table(self, composers_names: list[str]):
+        """Create the composers table
+
+        Parameters
+        ----------
+        composers_names: list[str]
+            List of composers names
+
+        Return
+        -----
+        composers: pd.DataFrame
+            Dataframe of the composers
+        """
+        composers_ids = []
+        for i in range(0,len(composers_names),100):
+            try:
+                composers_ids += await self.search_composers_by_name(composers_names[i:i+100])
+            except Exception as e:
+                print(e)
+                print("sleeping for 30 seconds")
+                time.sleep(30)
+                composers_ids += await self.search_composers_by_name(composers_names[i:i+100])
+        # composers_ids = await self.search_composers_by_name(composers_names)
+        print("Composers: ", len(composers_ids))
+        composers = []
+        time.sleep(30)
+        print("start getting them")
+        for i in range(0, len(composers_ids), 50):
+            if i + 50 < len(composers_ids):
+                composers += await asyncio.gather(
+                    *[self._perform_async_request(f'{self._base_url}artists?ids={",".join(composers_ids[i:i + 50])}')])
+            else:
+                composers += await asyncio.gather(
+                    *[self._perform_async_request(f'{self._base_url}artists?ids={",".join(composers_ids[i:])}')])
+        # Flatten composers
+        composers = [item for sublist in composers for item in sublist['artists'] if item]
+        print("Composers: ", len(composers))
+        composers_parsed = []
+        for c in composers:
+            try:
+                composers_parsed.append(ComposerSpotify(
+                    id=c['id'],
+                    name=c['name'],
+                    genres=c['genres'],
+                    followers=c['followers']['total'],
+                    popularity=c['popularity'],
+                ))
+            except Exception as e:
+                print(e)
+                print(c)
+        return pd.DataFrame(composers_parsed)

@@ -1,5 +1,7 @@
 dataset/MovieSummaries
+dataset/corenlp_plot_summaries
 .DS_Store
 .idea/
 .env
 __pycache__
+.gitignore

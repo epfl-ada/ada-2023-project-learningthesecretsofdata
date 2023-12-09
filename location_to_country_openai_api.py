@@ -26,7 +26,7 @@ completion = client.chat.completions.create(
 )
 
 # Create the mapping dictionary
-location_dict = ast.literal_eval(f"{'{' + completion.choices[0].message.content[38:-26] + '}'}")
+location_dict = ast.literal_eval(f"{'{' + completion.choices[0].message.content + '}'}")
 
 # Convert the dict to a pandas Dataframe for easy manipulation
 location_to_country = pd.DataFrame(list(location_dict.items()), columns=['location', 'country'])

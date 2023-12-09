@@ -20,8 +20,10 @@ def heat_map_world(df: pd.DataFrame, color: str):
                         color='location',
                         color_continuous_scale=color,  # can change color, click link in markdown just above
                         title='Heat Map of Locations',
-                        labels={'location': 'Number of Locations'}
+                        labels={'location': 'Number of Composers'}
                         )
+    # Fix the layout template
+    fig.update_layout(template='plotly')
 
     # Show the figure
     fig.show()

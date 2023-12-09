@@ -9,7 +9,7 @@ def create_db_to_link_composers_to_movies(movies: pd.DataFrame) -> pd.DataFrame:
     """Description if needed"""
     # Initialize the new database
     db_to_link_composers_to_movies = pd.DataFrame(
-        columns=['tmdb_id', 'comp_id', 'movie_name', 'movie_revenue', 'composer_name']
+        columns=['tmdb_id', 'comp_id', 'movie_name', 'movie_revenue', 'composer_name', 'composer_place_of_birth']
     )
     # Set the index to be unique (pair of ids)
     db_to_link_composers_to_movies.set_index(['tmdb_id', 'comp_id'], inplace=True)
@@ -25,9 +25,12 @@ def create_db_to_link_composers_to_movies(movies: pd.DataFrame) -> pd.DataFrame:
             for composer in composers:
                 comp_id = composer.id
                 comp_name = composer.name
-                db_to_link_composers_to_movies.loc[(movie_id, comp_id), :] = {'movie_name': movie_name,
-                                                                              'movie_revenue': movie_revenue,
-                                                                              'composer_name': comp_name}
+                comp_place_of_birth = composer.place_of_birth
+                db_to_link_composers_to_movies.loc[(movie_id, comp_id), :] = \
+                    {'movie_name': movie_name,
+                     'movie_revenue': movie_revenue,
+                     'composer_name': comp_name,
+                     'composer_place_of_birth': comp_place_of_birth}
         else:
             pass
 

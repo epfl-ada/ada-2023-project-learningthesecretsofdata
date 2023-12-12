@@ -4,6 +4,7 @@ import urllib.parse
 
 import aiohttp
 import pandas as pd
+from aiohttp import ClientResponseError
 from requests.exceptions import HTTPError
 
 from config import config
@@ -28,6 +29,8 @@ class SpotifyDataLoader:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         await self._session.close()
 
+    _REQUESTS_LIMIT = 50
+
     async def _perform_async_request(self, url: str):
         """Perform specific request asynchronously given a URL
 
@@ -44,9 +47,42 @@ class SpotifyDataLoader:
             async with self._session.get(url) as response:
                 response.raise_for_status()
                 return await response.json()
-        except HTTPError as e:
+        except ClientResponseError as e:
             print(f'Error while performing request: {e}')
             raise e
+
+    async def _perform_async_batch_request(self, url: str, args: list, batch_size: int = 100) -> list:
+        """Perform specific request asynchronously given a URL
+
+        Parameters
+        ----------
+        url: correct formatted endpoint/url
+
+        *args: list of arguments to pass to the url
+
+        batch_size: size of the batch
+
+        Return
+        ------
+        Result of the request
+        """
+        result = []
+        for i in range(0, len(args), batch_size):
+            success = False
+            batch_items = args[i:i+batch_size]
+            while not success:
+                try:
+                    result += await asyncio.gather(
+                        *[self._perform_async_request(url % batch_item) for batch_item in batch_items])
+                    success = True
+                except ClientResponseError as e:
+                    if e.status == 429:
+                        print("Spotify API threshold reached:\n\tSleeping for 30 seconds!")
+                        await asyncio.sleep(30)
+                    else:
+                        raise e
+
+        return result
 
     async def get_music_from_track(self, track: dict) -> Music:
         """Get the music Object from a track
@@ -74,6 +110,28 @@ class SpotifyDataLoader:
 
         return music
 
+    async def search_albums_by_name(self, names: list[str]) -> list[str]:
+        """
+        Search for the album ids given a list of album names
+
+        Parameters
+        ----------
+        names: list[str]
+            List of album names
+
+        Return
+        ------
+        album_ids: list[str]
+            List of album ids
+        """
+
+        result = await asyncio.gather(
+            *[self._perform_async_request(f'{self._base_url}search?q={urllib.parse.quote(name)}&type=album&limit=50')
+              for name in names])
+
+        albums = [result['albums']['items'] for result in result if result['albums']['items']]
+        return albums
+
     async def search_composers_by_name(self, names: list[str]) -> list[str]:
         """
         Search for the composer ids given a list of composer names
@@ -88,14 +146,55 @@ class SpotifyDataLoader:
         composer_ids: list[str]
             List of composer ids
         """
+        results = await self._perform_async_batch_request(f'{self._base_url}search?q=%s&type=artist&limit=1',
+                                                   [urllib.parse.quote(name) for name in names])
 
-        result = await asyncio.gather(
-            *[self._perform_async_request(f'{self._base_url}search?q={urllib.parse.quote(name)}&type=artist&limit=1')
-              for name in names])
-
-        composer_ids = [result['artists']['items'][0]['id'] for result in result if result['artists']['items']]
+        composer_ids = [result['artists']['items'][0]['id'] for result in results if result['artists']['items']]
         return composer_ids
 
+
+    async def get_composers_by_id(self, composers_id: list[str]) -> list[ComposerSpotify]:
+        """
+        Get the composers given a list of composer ids
+        """
+        composer_ids_batch = [",".join(composers_id[i:i + self._REQUESTS_LIMIT]) for i in range(0, len(composers_id),
+                                                                                                self._REQUESTS_LIMIT)]
+        results = await self._perform_async_batch_request(f'{self._base_url}artists?ids=%s', composer_ids_batch)
+
+        composers = [item for sublist in results for item in sublist['artists'] if item]
+        print("Composers: ", len(composers))
+
+        composers_parsed = []
+        for c in composers:
+            try:
+                composers_parsed.append(ComposerSpotify(
+                    id=c['id'],
+                    name=c['name'],
+                    genres=c['genres'],
+                    followers=c['followers']['total'],
+                    popularity=c['popularity'],
+                ))
+            except Exception as e:
+                print(e)
+                print(c)
+        return composers_parsed
+
+    async def get_composer_albums(self, composer_id: str) -> list[str]:
+        """
+        Get the albums of a composer
+
+        Parameters
+        ----------
+        composer_id: str
+            Composer id
+
+        Return
+        ------
+        albums_ids: list[str]
+            List of albums ids
+        """
+        result = await self._perform_async_request(f'{self._base_url}artists/{composer_id}/albums')
+        return result['items']
     async def get_composers_albums_async(self, composers_id: list[str]) -> list:
         """
         Get the albums ids of all the composers
@@ -163,7 +262,7 @@ class SpotifyDataLoader:
             *[self._perform_async_request(f'{self._base_url}tracks/{track_id}') for track_id in tracks_ids])
         return tracks
 
-    async def append_music(self, composer_names: list) -> pd.DataFrame:
+    async def append_music(self, composer_names: list) -> pd.DataFrame: #TODO: don't forget to remove all usage if not used
         """Append the music to the spotify_dataset.pickle file
 
         Parameters
@@ -203,41 +302,10 @@ class SpotifyDataLoader:
         composers: pd.DataFrame
             Dataframe of the composers
         """
-        composers_ids = []
-        for i in range(0,len(composers_names),100):
-            try:
-                composers_ids += await self.search_composers_by_name(composers_names[i:i+100])
-            except Exception as e:
-                print(e)
-                print("sleeping for 30 seconds")
-                time.sleep(30)
-                composers_ids += await self.search_composers_by_name(composers_names[i:i+100])
-        # composers_ids = await self.search_composers_by_name(composers_names)
+        composers_ids = await self.search_composers_by_name(composers_names)
+
         print("Composers: ", len(composers_ids))
-        composers = []
-        time.sleep(30)
-        print("start getting them")
-        for i in range(0, len(composers_ids), 50):
-            if i + 50 < len(composers_ids):
-                composers += await asyncio.gather(
-                    *[self._perform_async_request(f'{self._base_url}artists?ids={",".join(composers_ids[i:i + 50])}')])
-            else:
-                composers += await asyncio.gather(
-                    *[self._perform_async_request(f'{self._base_url}artists?ids={",".join(composers_ids[i:])}')])
-        # Flatten composers
-        composers = [item for sublist in composers for item in sublist['artists'] if item]
-        print("Composers: ", len(composers))
-        composers_parsed = []
-        for c in composers:
-            try:
-                composers_parsed.append(ComposerSpotify(
-                    id=c['id'],
-                    name=c['name'],
-                    genres=c['genres'],
-                    followers=c['followers']['total'],
-                    popularity=c['popularity'],
-                ))
-            except Exception as e:
-                print(e)
-                print(c)
-        return pd.DataFrame(composers_parsed)
+
+        composers = await self.get_composers_by_id(composers_ids)
+
+        return pd.DataFrame(composers)

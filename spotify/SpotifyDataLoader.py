@@ -69,7 +69,7 @@ class SpotifyDataLoader:
         result = []
         for i in range(0, len(args), batch_size):
             success = False
-            batch_items = args[i:i+batch_size]
+            batch_items = args[i:i + batch_size]
             while not success:
                 try:
                     result += await asyncio.gather(
@@ -125,9 +125,8 @@ class SpotifyDataLoader:
             List of album ids
         """
 
-        result = await asyncio.gather(
-            *[self._perform_async_request(f'{self._base_url}search?q={urllib.parse.quote(name)}&type=album&limit=50')
-              for name in names])
+        result = await self._perform_async_batch_request(f'{self._base_url}search?q=%s&type=album&limit=50',
+                                                         [urllib.parse.quote(name) for name in names])
 
         albums = [result['albums']['items'] for result in result if result['albums']['items']]
         return albums
@@ -147,11 +146,10 @@ class SpotifyDataLoader:
             List of composer ids
         """
         results = await self._perform_async_batch_request(f'{self._base_url}search?q=%s&type=artist&limit=1',
-                                                   [urllib.parse.quote(name) for name in names])
+                                                          [urllib.parse.quote(name) for name in names])
 
         composer_ids = [result['artists']['items'][0]['id'] for result in results if result['artists']['items']]
         return composer_ids
-
 
     async def get_composers_by_id(self, composers_id: list[str]) -> list[ComposerSpotify]:
         """
@@ -195,6 +193,7 @@ class SpotifyDataLoader:
         """
         result = await self._perform_async_request(f'{self._base_url}artists/{composer_id}/albums')
         return result['items']
+
     async def get_composers_albums_async(self, composers_id: list[str]) -> list:
         """
         Get the albums ids of all the composers
@@ -262,7 +261,8 @@ class SpotifyDataLoader:
             *[self._perform_async_request(f'{self._base_url}tracks/{track_id}') for track_id in tracks_ids])
         return tracks
 
-    async def append_music(self, composer_names: list) -> pd.DataFrame: #TODO: don't forget to remove all usage if not used
+    async def append_music(self,
+                           composer_names: list) -> pd.DataFrame:  # TODO: don't forget to remove all usage if not used
         """Append the music to the spotify_dataset.pickle file
 
         Parameters

@@ -3,6 +3,7 @@ import time
 import urllib.parse
 
 import aiohttp
+import numpy as np
 import pandas as pd
 from aiohttp import ClientResponseError
 from requests.exceptions import HTTPError
@@ -51,7 +52,7 @@ class SpotifyDataLoader:
             print(f'Error while performing request: {e}')
             raise e
 
-    async def _perform_async_batch_request(self, url: str, args: list, batch_size: int = 100) -> list:
+    async def _perform_async_batch_request(self, url: str, args: list, batch_size: int = 100, lists = False) -> list:
         """Perform specific request asynchronously given a URL
 
         Parameters
@@ -72,8 +73,12 @@ class SpotifyDataLoader:
             batch_items = args[i:i + batch_size]
             while not success:
                 try:
-                    result += await asyncio.gather(
-                        *[self._perform_async_request(url % batch_item) for batch_item in batch_items])
+                    if not lists:
+                        result += await asyncio.gather(
+                            *[self._perform_async_request(url % batch_item) for batch_item in batch_items])
+                    else:
+                        result.append(await asyncio.gather(
+                            *[self._perform_async_request(url % batch_item) for batch_item in batch_items]))
                     success = True
                 except ClientResponseError as e:
                     if e.status == 429:
@@ -110,7 +115,7 @@ class SpotifyDataLoader:
 
         return music
 
-    async def search_albums_by_name(self, names: list[str]) -> list[str]:
+    async def search_albums_by_name(self, names: list[str]) -> list[list]:
         """
         Search for the album ids given a list of album names
 
@@ -125,11 +130,12 @@ class SpotifyDataLoader:
             List of album ids
         """
 
-        result = await self._perform_async_batch_request(f'{self._base_url}search?q=%s&type=album&limit=50',
-                                                         [urllib.parse.quote(name) for name in names])
-
-        albums = [result['albums']['items'] for result in result if result['albums']['items']]
-        return albums
+        results = await self._perform_async_batch_request(f'{self._base_url}search?q=%s&type=album&limit=50',
+                                                         [urllib.parse.quote(name) for name in names], lists=True)
+        albums = []
+        for result in results:
+            albums.append([result1['albums']['items'] for result1 in result if result1['albums']['items']])
+        return albums[0]
 
     async def search_composers_by_name(self, names: list[str]) -> list[str]:
         """

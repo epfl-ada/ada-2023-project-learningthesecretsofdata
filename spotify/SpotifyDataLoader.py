@@ -1,6 +1,7 @@
 import asyncio
 import time
 import urllib.parse
+from typing import Tuple, List, Any
 
 import aiohttp
 import numpy as np
@@ -52,7 +53,7 @@ class SpotifyDataLoader:
             print(f'Error while performing request: {e}')
             raise e
 
-    async def _perform_async_batch_request(self, url: str, args: list, batch_size: int = 100, lists = False) -> list:
+    async def _perform_async_batch_request(self, url: str, args: list, batch_size: int = 100, lists=False) -> list:
         """Perform specific request asynchronously given a URL
 
         Parameters
@@ -104,11 +105,11 @@ class SpotifyDataLoader:
             List of tracks ids
         """
         tracks = await self._perform_async_batch_request(f'{self._base_url}albums/%s/tracks',
-                                                          [album_id for album_id in albums_ids])
+                                                         [album_id for album_id in albums_ids])
 
         tracks_items = [t['items'] for t in tracks if t['items']]
 
-        tracks_ids= []
+        tracks_ids = []
         ban_words = ["Remastered", "Remaster", "remaster", "live", "Live", "Bonus"]
         for sublist in tracks_items:
             tracks_id = []
@@ -118,7 +119,33 @@ class SpotifyDataLoader:
             tracks_ids.append(tracks_id)
         return tracks_ids
 
-    async def get_music_from_track(self, track: dict) -> Music:
+    async def get_tracks_from_tracks_ids(self, tracks_ids: list[str], genre: bool = False) -> tuple[list, list[Any]]:
+        """
+        Get the tracks from tracks ids
+
+        Parameters
+        ----------
+        tracks_ids: list[str]
+            List of tracks ids
+
+        Return
+        ------
+        tracks: list[dict]
+            List of tracks
+        """
+        tracks = await self._perform_async_batch_request(f'{self._base_url}tracks/%s',
+                                                         [track_id for track_id in tracks_ids])
+
+        genres = []
+        if genre:
+            artist_id = [artist["id"] for artist in track['artists'] for track in tracks]
+            genres = await self._perform_async_batch_request(f'{self._base_url}artists/%s',
+                                                             [a_id for a_id in artist_id])
+            genres = [g['genres'] for g in genres if g['genres']]
+
+        return tracks, genres
+
+    def get_music_from_track(self, track: dict, genre) -> Music:
         """Get the music Object from a track
 
         Parameters
@@ -129,15 +156,11 @@ class SpotifyDataLoader:
         ------
         music: Music
         """
-        artist_id = track['artists'][0]['id']
-        url = f'{self._base_url}artists/{artist_id}'
-        result = await self._perform_async_request(url)
-        genres = result['genres']
         # Extract the music from the result
         music = Music(
             id=track['id'],
             name=track['name'],
-            genre=genres,
+            genre=genre,
             composer_id=track['artists'][0]['id'],
             popularity=track['popularity'],
         )
@@ -160,7 +183,7 @@ class SpotifyDataLoader:
         """
 
         results = await self._perform_async_batch_request(f'{self._base_url}search?q=%s&type=album&limit=50',
-                                                         [urllib.parse.quote(name) for name in names], lists=True)
+                                                          [urllib.parse.quote(name) for name in names], lists=True)
         albums = []
         for result in results:
             albums.append([result1['albums']['items'] for result1 in result if result1['albums']['items']])

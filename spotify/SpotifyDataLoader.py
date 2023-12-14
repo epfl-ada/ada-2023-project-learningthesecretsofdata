@@ -138,7 +138,7 @@ class SpotifyDataLoader:
 
         genres = []
         if genre:
-            artist_id = [artist["id"] for artist in track['artists'] for track in tracks]
+            artist_id = [artist["id"] for track in tracks for artist in track['artists']]
             genres = await self._perform_async_batch_request(f'{self._base_url}artists/%s',
                                                              [a_id for a_id in artist_id])
             genres = [g['genres'] for g in genres if g['genres']]

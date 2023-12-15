@@ -5,6 +5,21 @@ Which are the most frequent music genre appearing in movies ?
 import pandas as pd
 
 
+def question_1(movie_music_genre_df: pd.DataFrame, min_revenue: int, max_revenue: int,
+               soundtrack_in_genre: bool = True) -> pd.DataFrame:
+    """Description if needed"""
+    selected_movie_music_genre_df = movie_selection_over_revenue(df=movie_music_genre_df,
+                                                                 min_revenue=min_revenue,
+                                                                 max_revenue=max_revenue)
+
+    genre_count = genre_distribution_over_movies(selected_movie_music_genre_df).sort_values(by='count', ascending=False)
+
+    if soundtrack_in_genre:
+        return genre_count
+    else:
+        return genre_count[~genre_count["genre"].str.contains('soundtrack', case=False)]
+
+
 def create_db_to_link_composers_to_movies(movies: pd.DataFrame) -> pd.DataFrame:
     """Description if needed"""
     # Initialize the new database

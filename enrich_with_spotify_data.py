@@ -218,7 +218,7 @@ async def get_music_from_track_ids(albums_with_track_ids: pd.DataFrame) -> pd.Da
     print(f'Elapsed time for retrieving all music objects from track_ids: {end_time - start_time}')
 
     albums_with_track_ids.to_pickle('dataset/album_id_and_musics.pickle')
-    albums_with_track_ids.to_csv('dataset/album_id_and_musics.pickle.csv')
+    albums_with_track_ids.to_csv('dataset/album_id_and_musics.csv')
 
     return albums_with_track_ids
 

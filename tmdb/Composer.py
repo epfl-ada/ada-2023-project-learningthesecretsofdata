@@ -9,6 +9,7 @@ class Composer:
     id: str
     name: str
     birthday: str = None
+    # 0 = Undefined, 1 = Female, 2 = Male
     gender: int = None
     homepage: str = None
     place_of_birth: str = None

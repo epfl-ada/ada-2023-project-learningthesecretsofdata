@@ -5,3 +5,10 @@ from dotenv import dotenv_values
 config = {
     **dotenv_values(join(dirname(__file__), '.env'))
 }
+
+
+def reload_env_config():
+    global config
+    config = {
+        **dotenv_values(join(dirname(__file__), '.env'))
+    }

@@ -8,7 +8,8 @@ import os
 
 from config import config
 
-if __name__ == '__main__':
+
+def replace_token():
     client_id = config['SPOTIFY_CLIENT_ID']
     client_secret = config['SPOTIFY_CLIENT_SECRET']
 
@@ -34,3 +35,7 @@ if __name__ == '__main__':
                     new_env.write(line)
             new_env.write(f'SPOTIFY_ACCESS_TOKEN="{access_token}"\n')
     os.replace('../tmp', '../.env')
+
+
+if __name__ == '__main__':
+    replace_token()

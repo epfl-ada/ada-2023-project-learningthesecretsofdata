@@ -9,13 +9,14 @@ import pandas as pd
 from aiohttp import ClientResponseError
 from requests.exceptions import HTTPError
 
-from config import config
+from config import config, reload_env_config
 from spotify.Composer_Spotify import ComposerSpotify
 from spotify.Music import Music
 
 
 class SpotifyDataLoader:
     def __init__(self):
+        reload_env_config()
         self._tcp_connector = aiohttp.TCPConnector(limit=50)
         self._header = {
             'Authorization': f'Bearer {config["SPOTIFY_ACCESS_TOKEN"]}',
@@ -32,6 +33,10 @@ class SpotifyDataLoader:
         await self._session.close()
 
     _REQUESTS_LIMIT = 50
+
+    def reload_config(self):
+        """Reload the config file"""
+        self.__init__()
 
     async def _perform_async_request(self, url: str):
         """Perform specific request asynchronously given a URL

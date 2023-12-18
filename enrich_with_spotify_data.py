@@ -1,10 +1,12 @@
 import asyncio
+import os
 import time
 
 import numpy as np
 import pandas as pd
 
 from question_script.question1 import create_db_to_link_composers_to_movies
+from spotify import get_bearer_token
 from spotify.SpotifyDataLoader import SpotifyDataLoader
 from rapidfuzz import fuzz
 
@@ -23,7 +25,19 @@ NEGATIVE_INFLUENCE = 0.9
 BATCH_SIZE = 100
 
 
-def count_occurence_and_return_diff(movie_name: str, query_words: list[str], keyword_list: list[str]) -> tuple[
+def _regenerate_token_if_needed(timer, spotify):
+    """
+    Regenerate token if timer is more than 3000 seconds
+    """
+
+    if time.time() - timer > 3000:
+        get_bearer_token.replace_token()
+        spotify.reload_config()
+        return time.time()
+    return timer
+
+
+def count_occurrence_and_return_diff(movie_name: str, query_words: list[str], keyword_list: list[str]) -> tuple[
     int, list]:
     """
     Count the number of occurence of the keyword in the movie name and return the difference between the query words
@@ -91,9 +105,9 @@ def score_best_matching_albums(albums_df: pd.DataFrame, date: int, name: str, co
 
         query_words = query_name.split()
 
-        pos_count, positive_words = count_occurence_and_return_diff(movie_name, query_words, POSITIVE_KEYWORD)
-        neg_count, negative_words = count_occurence_and_return_diff(movie_name, query_words, NEGATIVE_KEYWORD)
-        neu_count, neutral_words = count_occurence_and_return_diff(movie_name, query_words, NEUTRAL_KEYWORD)
+        pos_count, positive_words = count_occurrence_and_return_diff(movie_name, query_words, POSITIVE_KEYWORD)
+        neg_count, negative_words = count_occurrence_and_return_diff(movie_name, query_words, NEGATIVE_KEYWORD)
+        neu_count, neutral_words = count_occurrence_and_return_diff(movie_name, query_words, NEUTRAL_KEYWORD)
 
         to_remove = positive_words + negative_words + neutral_words
         cleaned_query = [word for word in query_words if word.lower() not in to_remove]
@@ -107,7 +121,8 @@ def score_best_matching_albums(albums_df: pd.DataFrame, date: int, name: str, co
     return score
 
 
-async def get_album_ids_into_df(movie_names_and_date: pd.DataFrame) -> pd.DataFrame:
+async def get_album_ids_into_df(movie_names_and_date: pd.DataFrame, checkpoint: bool = False,
+                                save_interval: int = 10) -> pd.DataFrame:
     """
     This function is used to create the movie_album_and_revenue.pickle file
 
@@ -115,16 +130,27 @@ async def get_album_ids_into_df(movie_names_and_date: pd.DataFrame) -> pd.DataFr
     ----------
     movie_names_and_date: pd.DataFrame
 
+    checkpoint: bool
+
+    save_interval: int
+
     Returns
     -------
     movie_albums_df: pd.DataFrame
     """
+
     # Create new dataframe with the same columns as movie_names_and_date and an additional column for the album id
     columns = movie_names_and_date.columns.values
     columns = np.append(columns, "album_id")
     movie_albums_df = pd.DataFrame(columns=columns)
 
+    if checkpoint:
+        # Load the checkpoint if it exists
+        if os.path.isfile('dataset/checkpoints/movie_album_and_revenue.pickle'):
+            movie_albums_df = pd.read_pickle('dataset/checkpoints/movie_album_and_revenue.pickle')
+
     start_time = time.time()
+    timer = start_time
 
     # Get the album ids for each movie
     async with SpotifyDataLoader() as spotify:
@@ -135,6 +161,10 @@ async def get_album_ids_into_df(movie_names_and_date: pd.DataFrame) -> pd.DataFr
             date = list(batch.release_date)
             names = list(batch.movie_name)
             composer = list(batch.composer_name)
+
+            # if timer more than 1 hour, regenerate token
+            timer = _regenerate_token_if_needed(timer, spotify)
+
             results = await spotify.search_albums_by_name(names)
             for j, albums in enumerate(results):
                 albums_df = pd.DataFrame(albums)
@@ -145,6 +175,9 @@ async def get_album_ids_into_df(movie_names_and_date: pd.DataFrame) -> pd.DataFr
                     row["album_id"] = albums_df.loc[best_score[0]]["id"]
                     movie_albums_df.loc[count] = row
                     count += 1
+
+                    if checkpoint and j % save_interval == 0:
+                        movie_albums_df.to_pickle('dataset/checkpoints/movie_album_and_revenue.pickle')
 
     end_time = time.time()
 
@@ -157,7 +190,7 @@ async def get_album_ids_into_df(movie_names_and_date: pd.DataFrame) -> pd.DataFr
     return movie_albums_df
 
 
-async def get_track_ids_into_df(movie_albums_df: pd.DataFrame) -> pd.DataFrame:
+async def get_track_ids_into_df(movie_albums_df: pd.DataFrame, checkpoint: bool = False) -> pd.DataFrame:
     """
     This function is used to create the movie_album_and_revenue_with_track_ids.pickle file
 
@@ -240,7 +273,10 @@ def main():
     movie_names_and_date = box_office_and_composer_popularity[
         ["movie_name", "release_date", "movie_revenue", "composer_name"]]
 
-    movie_albums_df = asyncio.run(get_album_ids_into_df(movie_names_and_date))
+    get_bearer_token.replace_token()
+    movie_albums_df = asyncio.run(get_album_ids_into_df(movie_names_and_date, checkpoint=True))
+
+    get_bearer_token.replace_token()
     asyncio.run(get_track_ids_into_df(movie_albums_df))
 
     # Create a dataframe only containing the album id and the track ids
@@ -248,6 +284,7 @@ def main():
     albums_with_tracks = albums_with_tracks[["album_id", "track_ids"]]
 
     # Get the music object from track ids
+    get_bearer_token.replace_token()
     asyncio.run(get_music_from_track_ids(albums_with_tracks))
 
 

@@ -31,7 +31,8 @@ def _regenerate_token_if_needed(timer, spotify):
     """
 
     if time.time() - timer > 3000:
-        get_bearer_token.replace_token()
+        print("Regenerate token")
+        get_bearer_token.replace_token("")
         spotify.reload_config()
         return time.time()
     return timer
@@ -122,7 +123,7 @@ def score_best_matching_albums(albums_df: pd.DataFrame, date: int, name: str, co
 
 
 async def get_album_ids_into_df(movie_names_and_date: pd.DataFrame, checkpoint: bool = False,
-                                save_interval: int = 10) -> pd.DataFrame:
+                                save_interval: int = 5) -> pd.DataFrame:
     """
     This function is used to create the movie_album_and_revenue.pickle file
 
@@ -138,26 +139,27 @@ async def get_album_ids_into_df(movie_names_and_date: pd.DataFrame, checkpoint: 
     -------
     movie_albums_df: pd.DataFrame
     """
+    checkpoint_path = 'dataset/checkpoints/movie_album_and_revenue.pickle'
 
-    # Create new dataframe with the same columns as movie_names_and_date and an additional column for the album id
-    columns = movie_names_and_date.columns.values
-    columns = np.append(columns, "album_id")
-    movie_albums_df = pd.DataFrame(columns=columns)
+    movie_albums_df = movie_names_and_date
+    movie_albums_df['album_id'] = None
 
     if checkpoint:
         # Load the checkpoint if it exists
-        if os.path.isfile('dataset/checkpoints/movie_album_and_revenue.pickle'):
-            movie_albums_df = pd.read_pickle('dataset/checkpoints/movie_album_and_revenue.pickle')
+        if os.path.isfile(checkpoint_path):
+            movie_albums_df = pd.read_pickle(checkpoint_path)
+
+    mask = movie_albums_df["album_id"].isna()
+    working_index = movie_albums_df[mask].index
 
     start_time = time.time()
     timer = start_time
 
     # Get the album ids for each movie
     async with SpotifyDataLoader() as spotify:
-        count = 0
-        for i in range(0, len(movie_names_and_date), BATCH_SIZE):
+        for i in range(0, len(working_index), BATCH_SIZE):
             # Get all the albums for the movies in the batch
-            batch = movie_names_and_date.loc[i:i + BATCH_SIZE]
+            batch = movie_albums_df.loc[working_index[i:i + BATCH_SIZE]]
             date = list(batch.release_date)
             names = list(batch.movie_name)
             composer = list(batch.composer_name)
@@ -171,13 +173,10 @@ async def get_album_ids_into_df(movie_names_and_date: pd.DataFrame, checkpoint: 
                 scores = score_best_matching_albums(albums_df, date[j], names[j], composer[j])
                 if len(scores) > 0:
                     best_score = max(scores, key=lambda x: x[1])
-                    row = movie_names_and_date.loc[i + j].copy()
-                    row["album_id"] = albums_df.loc[best_score[0]]["id"]
-                    movie_albums_df.loc[count] = row
-                    count += 1
+                    movie_albums_df.loc[working_index[i + j], "album_id"] = albums_df.loc[best_score[0]]["id"]
 
                     if checkpoint and j % save_interval == 0:
-                        movie_albums_df.to_pickle('dataset/checkpoints/movie_album_and_revenue.pickle')
+                        movie_albums_df.to_pickle(checkpoint_path)
 
     end_time = time.time()
 
@@ -190,7 +189,8 @@ async def get_album_ids_into_df(movie_names_and_date: pd.DataFrame, checkpoint: 
     return movie_albums_df
 
 
-async def get_track_ids_into_df(movie_albums_df: pd.DataFrame, checkpoint: bool = False) -> pd.DataFrame:
+async def get_track_ids_into_df(movie_albums_df: pd.DataFrame, checkpoint: bool = False,
+                                save_interval: int = 5) -> pd.DataFrame:
     """
     This function is used to create the movie_album_and_revenue_with_track_ids.pickle file
 
@@ -198,20 +198,42 @@ async def get_track_ids_into_df(movie_albums_df: pd.DataFrame, checkpoint: bool 
     ----------
     movie_albums_df: pd.DataFrame
 
+    checkpoint: bool
+
+    save_interval: int
+
     Returns
     -------
     movie_albums_df: pd.DataFrame
     """
+
+    checkpoint_path = 'dataset/checkpoints/movie_album_and_revenue_with_track_ids.pickle'
+    movie_albums_df['track_ids'] = None
+
+    if checkpoint:
+        # Load the checkpoint if it exists
+        if os.path.isfile(checkpoint_path):
+            movie_albums_df = pd.read_pickle(checkpoint_path)
+
+    mask = movie_albums_df["track_ids"].isna()
+    working_index = movie_albums_df[mask].index
+
     start_time = time.time()
+    timer = start_time
+
     async with SpotifyDataLoader() as spotify:
-        for i in range(0, len(movie_albums_df), BATCH_SIZE):
+        for i in range(0, len(working_index), BATCH_SIZE):
             # Get all the tracks ids of the albums in the batch
-            batch = list(movie_albums_df.loc[i:i + BATCH_SIZE]["album_id"])
+            batch = list(movie_albums_df.loc[working_index[i:i + BATCH_SIZE]]["album_id"])
             results = await spotify.get_albums_tracks_async(batch)
-            movie_albums_df.loc[i:i + BATCH_SIZE, "track_ids"] = np.array(results, dtype=object)
+            movie_albums_df.loc[working_index[i:i + BATCH_SIZE], "track_ids"] = np.array(results, dtype=object)
+            timer = _regenerate_token_if_needed(timer, spotify)
+            if checkpoint and i % save_interval == 0:
+                movie_albums_df.to_pickle(checkpoint_path)
+
     end_time = time.time()
 
-    print(f'Elapsed time for retrieving all tracks_ids from album_ids: {end_time - start_time}')
+    print(f'Elapsed time for retrieving all track_ids from album_ids: {end_time - start_time}')
 
     # Save the dataframe
     movie_albums_df.to_pickle('dataset/movie_album_and_revenue_with_track_ids.pickle')
@@ -220,7 +242,8 @@ async def get_track_ids_into_df(movie_albums_df: pd.DataFrame, checkpoint: bool 
     return movie_albums_df
 
 
-async def get_music_from_track_ids(albums_with_track_ids: pd.DataFrame) -> pd.DataFrame:
+async def get_music_from_track_ids(albums_with_track_ids: pd.DataFrame, checkpoint: bool = False,
+                                   save_interval: int = 10) -> pd.DataFrame:
     """
     This function is used to create the movie_album_and_revenue_with_track_ids.pickle file
 
@@ -228,23 +251,43 @@ async def get_music_from_track_ids(albums_with_track_ids: pd.DataFrame) -> pd.Da
     ----------
     albums_with_track_ids: pd.DataFrame
 
+    checkpoint: bool
+
+    save_interval: int
+
     Returns
     -------
     albums_with_track_ids: pd.DataFrame
     """
     # Create new dataframe with the same columns as movie_names_and_date and an additional column for the album id
     albums_with_track_ids['track'] = albums_with_track_ids.get('track', pd.Series(dtype='object'))
+    checkpoint_path = 'dataset/checkpoints/album_id_and_musics.pickle'
+
+    if checkpoint:
+        # Load the checkpoint if it exists
+        if os.path.isfile(checkpoint_path):
+            albums_with_track_ids = pd.read_pickle(checkpoint_path)
+
+    mask = albums_with_track_ids["track"].isna()
+    working_index = albums_with_track_ids[mask].index
+
+    start_time = time.time()
+    timer = start_time
 
     start_time = time.time()
     async with SpotifyDataLoader() as spotify:
-        for key in albums_with_track_ids["track_ids"].keys().unique():
+        for key in working_index.unique():
             tracks, genres = await spotify.get_tracks_from_tracks_ids(albums_with_track_ids["track_ids"][key],
                                                                       genre=True)
+            timer = _regenerate_token_if_needed(timer, spotify)
             for track in tracks:
                 for genre in genres:
                     music = spotify.get_music_from_track(track, genre)
                     # Use .loc for setting the value
                     albums_with_track_ids.loc[albums_with_track_ids["track_ids"] == music.id, "track"] = music
+
+            if checkpoint and key % save_interval == 0:
+                albums_with_track_ids.to_pickle(checkpoint_path)
 
     end_time = time.time()
 
@@ -273,19 +316,36 @@ def main():
     movie_names_and_date = box_office_and_composer_popularity[
         ["movie_name", "release_date", "movie_revenue", "composer_name"]]
 
-    get_bearer_token.replace_token()
-    movie_albums_df = asyncio.run(get_album_ids_into_df(movie_names_and_date, checkpoint=True))
+    if os.path.isfile("dataset/movie_album_and_revenue.pickle"):
+        movie_albums_df = pd.read_pickle("dataset/movie_album_and_revenue.pickle")
+    else:
+        get_bearer_token.replace_token("")
+        movie_albums_df = asyncio.run(get_album_ids_into_df(movie_names_and_date, checkpoint=True, save_interval=1))
 
-    get_bearer_token.replace_token()
-    asyncio.run(get_track_ids_into_df(movie_albums_df))
+    # clean the dataframe
+    movie_albums_df = movie_albums_df.dropna(subset=['album_id'])
+
+    if os.path.isfile("dataset/movie_album_and_revenue_with_track_ids.pickle"):
+        movie_albums_df = pd.read_pickle("dataset/movie_album_and_revenue_with_track_ids.pickle")
+    else:
+        get_bearer_token.replace_token("")
+        asyncio.run(get_track_ids_into_df(movie_albums_df, checkpoint=True, save_interval=1))
+
+    # clean the dataframe
+    movie_albums_df = movie_albums_df.dropna(subset=['track_ids'])
 
     # Create a dataframe only containing the album id and the track ids
     albums_with_tracks = movie_albums_df.explode('track_ids')
     albums_with_tracks = albums_with_tracks[["album_id", "track_ids"]]
 
-    # Get the music object from track ids
-    get_bearer_token.replace_token()
-    asyncio.run(get_music_from_track_ids(albums_with_tracks))
+    if os.path.isfile("dataset/album_id_and_musics.pickle"):
+        print("Enrichment already done!!")
+    else:
+        # Get the music object from track ids
+        get_bearer_token.replace_token("")
+        asyncio.run(get_music_from_track_ids(albums_with_tracks, checkpoint=True, save_interval=1))
+
+    print("Enrichment done!!")
 
 
 if __name__ == '__main__':

@@ -9,7 +9,7 @@ import os
 from config import config
 
 
-def replace_token():
+def replace_token(path="../"):
     client_id = config['SPOTIFY_CLIENT_ID']
     client_secret = config['SPOTIFY_CLIENT_SECRET']
 
@@ -28,13 +28,13 @@ def replace_token():
 
     # Save the access token to .env file
     access_token = auth_response_data['access_token']
-    with open('../.env', 'r') as old_env:
-        with open('../tmp', 'w') as new_env:
+    with open(path+'.env', 'r') as old_env:
+        with open(path+'tmp', 'w') as new_env:
             for line in old_env:
                 if not line.strip('\n').startswith('SPOTIFY_ACCESS_TOKEN'):
                     new_env.write(line)
             new_env.write(f'SPOTIFY_ACCESS_TOKEN="{access_token}"\n')
-    os.replace('../tmp', '../.env')
+    os.replace(path+'tmp', path+'.env')
 
 
 if __name__ == '__main__':

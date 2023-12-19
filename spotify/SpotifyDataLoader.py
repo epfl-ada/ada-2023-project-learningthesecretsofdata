@@ -52,10 +52,23 @@ class SpotifyDataLoader:
 
         try:
             async with self._session.get(url) as response:
-                response.raise_for_status()
+                try:
+                    response.raise_for_status()
+                except ClientResponseError as e:
+                    print(f'Error while performing request: {e}')
+                    if response.headers.get("Retry-After"):
+                        print(f"Sleeping for {response.headers.get('Retry-After')} seconds")
+                        await asyncio.sleep(int(response.headers.get('Retry-After')))
+                        raise e
+                    else:
+                        raise e
+
                 await asyncio.sleep(2)
                 return await response.json()
         except ClientResponseError as e:
+            if e.status == 400:
+                print(f'Error while performing request: {e}')
+                return None
             print(f'Error while performing request: {e}')
             raise e
 
@@ -149,10 +162,11 @@ class SpotifyDataLoader:
 
         genres = []
         if genre:
-            artist_id = [artist["id"] for track in tracks for artist in track['artists']]
+            artist_id = [artist["id"] for track in tracks if track for artist in track['artists']]
             genres = await self._perform_async_batch_request(f'{self._base_url}artists/%s',
                                                              [a_id for a_id in artist_id])
-            genres = [g['genres'] for g in genres if g['genres']]
+            if genres:
+                genres = [g['genres'] for g in genres if g['genres']]
 
         return tracks, genres
 

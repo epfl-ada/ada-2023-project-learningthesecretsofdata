@@ -294,7 +294,7 @@ async def get_music_from_track_ids(albums_with_track_ids: pd.DataFrame, checkpoi
     async with SpotifyDataLoader() as spotify:
         for key in working_index.unique():
             tracks, genres = await spotify.get_tracks_from_tracks_ids(albums_with_track_ids["track_ids"][key],
-                                                                      genre=False)
+                                                                      genre=True)
             timer = _regenerate_token_if_needed(timer, spotify)
             for track in tracks:
                 for genre in genres:
@@ -359,7 +359,7 @@ def main():
     else:
         # Get the music object from track ids
         get_bearer_token.replace_token("")
-        asyncio.run(get_music_from_track_ids(albums_with_tracks, checkpoint=True, save_interval=40))
+        asyncio.run(get_music_from_track_ids(albums_with_tracks, checkpoint=True, save_interval=10))
 
     print("Enrichment done!!")
 

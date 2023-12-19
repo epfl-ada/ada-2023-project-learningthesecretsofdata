@@ -283,6 +283,8 @@ async def get_music_from_track_ids(albums_with_track_ids: pd.DataFrame, checkpoi
         # Load the checkpoint if it exists
         if os.path.isfile(checkpoint_path):
             albums_with_track_ids = pd.read_pickle(checkpoint_path)
+            mask = albums_with_track_ids["track_ids"].str.len() != 22
+            albums_with_track_ids = albums_with_track_ids[~mask]
 
     mask = albums_with_track_ids["track"].isna()
     working_index = albums_with_track_ids[mask].index
@@ -292,8 +294,22 @@ async def get_music_from_track_ids(albums_with_track_ids: pd.DataFrame, checkpoi
 
     start_time = time.time()
     async with SpotifyDataLoader() as spotify:
-        for key in working_index.unique():
-            tracks, genres = await spotify.get_tracks_from_tracks_ids(albums_with_track_ids["track_ids"][key],
+        # Define the batch size
+        batch_size = 250  # You can change this value as needed
+
+        # Calculate the number of batches
+        unique_keys = working_index.unique()
+        num_batches = int(np.ceil(len(unique_keys) / batch_size))
+
+        # Iterate over each batch
+        for batch_num in range(num_batches):
+            # Get the start and end index for the current batch
+            start_idx = batch_num * batch_size
+            end_idx = start_idx + batch_size
+
+            # Get the keys for the current batch
+            batch_keys = unique_keys[start_idx:end_idx]
+            tracks, genres = await spotify.get_tracks_from_tracks_ids(albums_with_track_ids["track_ids"][batch_keys],
                                                                       genre=True)
             timer = _regenerate_token_if_needed(timer, spotify)
             for track in tracks:
@@ -302,7 +318,7 @@ async def get_music_from_track_ids(albums_with_track_ids: pd.DataFrame, checkpoi
                     # Use .loc for setting the value
                     albums_with_track_ids.loc[albums_with_track_ids["track_ids"] == music.id, "track"] = music
 
-            if checkpoint and key % save_interval == 0:
+            if checkpoint and batch_keys % save_interval == 0:
                 albums_with_track_ids.to_pickle(checkpoint_path)
 
     end_time = time.time()
@@ -353,13 +369,15 @@ def main():
     # Create a dataframe only containing the album id and the track ids
     albums_with_tracks = movie_albums_df.explode('track_ids')
     albums_with_tracks = albums_with_tracks[["album_id", "track_ids"]]
+    mask = albums_with_tracks["track_ids"].str.len() != 22
+    albums_with_tracks = albums_with_tracks[~mask]
 
     if os.path.isfile("dataset/album_id_and_musics.pickle"):
         print("Enrichment already done!!")
     else:
         # Get the music object from track ids
         get_bearer_token.replace_token("")
-        asyncio.run(get_music_from_track_ids(albums_with_tracks, checkpoint=True, save_interval=10))
+        asyncio.run(get_music_from_track_ids(albums_with_tracks, checkpoint=True, save_interval=1))
 
     print("Enrichment done!!")
 

@@ -32,7 +32,7 @@ class SpotifyDataLoader:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         await self._session.close()
 
-    _REQUESTS_LIMIT = 50
+    _REQUESTS_LIMIT = 49
 
     def reload_config(self):
         """Reload the config file"""
@@ -93,7 +93,7 @@ class SpotifyDataLoader:
             batch_items = args[i:i + batch_size]
             while not success:
                 try:
-                    if "track" in url:
+                    if "tracks/" in url:
                         print(f'Performing request for {len(batch_items)} tracks')
                     if not lists:
                         result += await asyncio.gather(
@@ -140,7 +140,8 @@ class SpotifyDataLoader:
             tracks_ids.append(tracks_id)
         return tracks_ids
 
-    async def get_tracks_from_tracks_ids(self, tracks_ids: list[str], genre: bool = False) -> tuple[list, list[Any]]:
+    async def get_tracks_from_tracks_ids(self, tracks_ids: pd.core.series.Series, genre: bool = False) -> tuple[
+        list, list[Any]]:
         """
         Get the tracks from tracks ids
 
@@ -157,8 +158,13 @@ class SpotifyDataLoader:
         tracks: list[dict]
             List of tracks
         """
+        tracks_ids = tracks_ids.astype(str)
+
+        batched_track_ids = [",".join(tracks_ids[i:i + self._REQUESTS_LIMIT].values) for i in
+                             range(0, len(tracks_ids), self._REQUESTS_LIMIT)]
+
         tracks = await self._perform_async_batch_request(f'{self._base_url}tracks/%s',
-                                                         [track_id for track_id in tracks_ids])
+                                                         [track_id for track_id in batched_track_ids])
 
         genres = []
         if genre:

@@ -93,8 +93,7 @@ class SpotifyDataLoader:
             batch_items = args[i:i + batch_size]
             while not success:
                 try:
-                    if "tracks/" in url:
-                        print(f'Performing request for {len(batch_items)} tracks')
+                    print(f'Performing request for {len(args)} requests')
                     if not lists:
                         result += await asyncio.gather(
                             *[self._perform_async_request(url % batch_item) for batch_item in batch_items])

@@ -163,12 +163,12 @@ class SpotifyDataLoader:
         batched_track_ids = [",".join(tracks_ids[i:i + self._REQUESTS_LIMIT].values) for i in
                              range(0, len(tracks_ids), self._REQUESTS_LIMIT)]
 
-        tracks = await self._perform_async_batch_request(f'{self._base_url}tracks/%s',
+        tracks = await self._perform_async_batch_request(f'{self._base_url}tracks/?ids=%s',
                                                          [track_id for track_id in batched_track_ids])
 
         genres = []
         if genre:
-            artist_id = [artist["id"] for track in tracks if track for artist in track['artists']]
+            artist_id = [artist["id"]for batch in tracks for track in batch if track for artist in track['artists']]
             genres = await self._perform_async_batch_request(f'{self._base_url}artists/%s',
                                                              [a_id for a_id in artist_id])
             if genres:

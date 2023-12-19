@@ -310,7 +310,7 @@ async def get_music_from_track_ids(albums_with_track_ids: pd.DataFrame, checkpoi
             # Get the keys for the current batch
             batch_keys = unique_keys[start_idx:end_idx]
             tracks, genres = await spotify.get_tracks_from_tracks_ids(albums_with_track_ids["track_ids"][batch_keys],
-                                                                      genre=True)
+                                                                      genre=False)
             timer = _regenerate_token_if_needed(timer, spotify)
             for track in tracks:
                 for genre in genres:
@@ -318,7 +318,7 @@ async def get_music_from_track_ids(albums_with_track_ids: pd.DataFrame, checkpoi
                     # Use .loc for setting the value
                     albums_with_track_ids.loc[albums_with_track_ids["track_ids"] == music.id, "track"] = music
 
-            if checkpoint and batch_keys % save_interval == 0:
+            if checkpoint:
                 albums_with_track_ids.to_pickle(checkpoint_path)
 
     end_time = time.time()

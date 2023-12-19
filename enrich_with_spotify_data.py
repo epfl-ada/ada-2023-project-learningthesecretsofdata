@@ -46,8 +46,11 @@ def count_occurrence_and_return_diff(movie_name: str, query_words: list[str], ke
     Parameters
     ----------
     movie_name: str
+        the movie name
     query_words: list
+        the query words
     keyword_list: list
+        the list of keywords
 
     Returns
     -------
@@ -72,9 +75,13 @@ def score_best_matching_albums(albums_df: pd.DataFrame, date: int, name: str, co
     Parameters
     ----------
     albums_df: pd.DataFrame
+        the dataframe of albums
     date: int
+        the date of the movie
     name: str
+        the name of the movie
     composer: str
+        the name of the composer
 
     Returns
     -------
@@ -130,10 +137,13 @@ async def get_album_ids_into_df(movie_names_and_date: pd.DataFrame, checkpoint: 
     Parameters
     ----------
     movie_names_and_date: pd.DataFrame
+        the dataframe of movies
 
     checkpoint: bool
+        if True, load the checkpoint and save the dataframe every save_interval
 
     save_interval: int
+        the interval to save the dataframe
 
     Returns
     -------
@@ -197,10 +207,13 @@ async def get_track_ids_into_df(movie_albums_df: pd.DataFrame, checkpoint: bool 
     Parameters
     ----------
     movie_albums_df: pd.DataFrame
+        the dataframe of movies
 
     checkpoint: bool
+        if True, load the checkpoint and save the dataframe every save_interval
 
     save_interval: int
+        the interval to save the dataframe
 
     Returns
     -------
@@ -250,10 +263,13 @@ async def get_music_from_track_ids(albums_with_track_ids: pd.DataFrame, checkpoi
     Parameters
     ----------
     albums_with_track_ids: pd.DataFrame
+        the dataframe of albums
 
     checkpoint: bool
+        if True, load the checkpoint and save the dataframe every save_interval
 
     save_interval: int
+        the interval to save the dataframe
 
     Returns
     -------
@@ -278,7 +294,7 @@ async def get_music_from_track_ids(albums_with_track_ids: pd.DataFrame, checkpoi
     async with SpotifyDataLoader() as spotify:
         for key in working_index.unique():
             tracks, genres = await spotify.get_tracks_from_tracks_ids(albums_with_track_ids["track_ids"][key],
-                                                                      genre=True)
+                                                                      genre=False)
             timer = _regenerate_token_if_needed(timer, spotify)
             for track in tracks:
                 for genre in genres:
@@ -343,7 +359,7 @@ def main():
     else:
         # Get the music object from track ids
         get_bearer_token.replace_token("")
-        asyncio.run(get_music_from_track_ids(albums_with_tracks, checkpoint=True, save_interval=1))
+        asyncio.run(get_music_from_track_ids(albums_with_tracks, checkpoint=True, save_interval=40))
 
     print("Enrichment done!!")
 

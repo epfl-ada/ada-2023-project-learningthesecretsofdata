@@ -53,6 +53,7 @@ class SpotifyDataLoader:
         try:
             async with self._session.get(url) as response:
                 response.raise_for_status()
+                await asyncio.sleep(2)
                 return await response.json()
         except ClientResponseError as e:
             print(f'Error while performing request: {e}')
@@ -79,6 +80,8 @@ class SpotifyDataLoader:
             batch_items = args[i:i + batch_size]
             while not success:
                 try:
+                    if "track" in url:
+                        print(f'Performing request for {len(batch_items)} tracks')
                     if not lists:
                         result += await asyncio.gather(
                             *[self._perform_async_request(url % batch_item) for batch_item in batch_items])
@@ -133,6 +136,9 @@ class SpotifyDataLoader:
         tracks_ids: list[str]
             List of tracks ids
 
+        genre: bool
+            If True, return the genres of the artist
+
         Return
         ------
         tracks: list[dict]
@@ -150,12 +156,16 @@ class SpotifyDataLoader:
 
         return tracks, genres
 
-    def get_music_from_track(self, track: dict, genre) -> Music:
+    def get_music_from_track(self, track: dict, genre: list[str]) -> Music:
         """Get the music Object from a track
 
         Parameters
         ----------
         track: dict
+            dict of the track
+
+        genre: list[str]
+            List of genres of the artist
 
         Return
         ------

@@ -9,13 +9,17 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 
-def extract_composers_dataframe(df: pd.DataFrame) -> pd.DataFrame:
+# TODO, refactor this function to extract explode logic and rest
+def extract_composers_dataframe(df: pd.DataFrame, column_to_drop: list = None,
+                                filter_duplicate: bool = True) -> pd.DataFrame:
     """
     Extract the composers dataframe from the movies dataframe.
 
     Parameters
     ----------
     df: The movies dataframe
+    column_to_drop: List of columns to drop from the dataframe before returning the composers dataframe
+    keep_duplicate: Whether to keep duplicated composers value
 
     Returns
     -------
@@ -24,8 +28,9 @@ def extract_composers_dataframe(df: pd.DataFrame) -> pd.DataFrame:
 
     exploded_df = df.dropna(subset='composers').explode('composers')
 
-    # Only keep first occurrences of each composer
-    exploded_df.drop_duplicates(subset='composers', inplace=True)
+    if filter_duplicate:
+        # Only keep first occurrences of each composer
+        exploded_df.drop_duplicates(subset='composers', inplace=True)
 
     (exploded_df['c_id'], exploded_df['c_name'], exploded_df['c_birthday'], exploded_df['c_gender'],
      exploded_df['c_homepage'], exploded_df['c_place_of_birth'], exploded_df['c_date_first_appearance']) = \
@@ -33,9 +38,11 @@ def extract_composers_dataframe(df: pd.DataFrame) -> pd.DataFrame:
             lambda c: (c.id, c.name, c.birthday, c.gender, c.homepage, c.place_of_birth, c.date_first_appearance)
         ))
 
-    # Keep only the composers
-    exploded_df.drop(columns=['box_office_revenue', 'name', 'genres', 'tmdb_id', 'release_date', 'countries'],
-                     inplace=True)
+    if column_to_drop is not None:
+        # Keep only the composers
+        exploded_df.drop(columns=column_to_drop, inplace=True)
+        # exploded_df.drop(columns=['box_office_revenue', 'name', 'genres', 'tmdb_id', 'release_date', 'countries'],
+        #                 inplace=True)
 
     # transform date column in date type
     exploded_df['c_birthday'] = pd.to_datetime(exploded_df.c_birthday)

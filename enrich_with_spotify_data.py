@@ -356,6 +356,7 @@ def main():
 
     # clean the dataframe
     movie_albums_df = movie_albums_df.dropna(subset=['album_id'])
+    movie_albums_df = movie_albums_df.drop_duplicates(subset=['movie_name'])
 
     if os.path.isfile("dataset/movie_album_and_revenue_with_track_ids.pickle"):
         movie_albums_df = pd.read_pickle("dataset/movie_album_and_revenue_with_track_ids.pickle")
@@ -365,6 +366,7 @@ def main():
 
     # clean the dataframe
     movie_albums_df = movie_albums_df.dropna(subset=['track_ids'])
+    movie_albums_df = movie_albums_df.drop_duplicates(subset=['movie_name'])
 
     # Create a dataframe only containing the album id and the track ids
     albums_with_tracks = movie_albums_df.explode('track_ids')

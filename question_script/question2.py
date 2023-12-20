@@ -4,69 +4,35 @@ What is the average composer's age at their :
    - first movie appearance ?
    - biggest box office revenue ?
 """
+import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
-import matplotlib.pyplot as plt
+
+from question_script.question_helper import extract_composers_dataframe
 
 
-# TODO, refactor this function to extract explode logic and rest
-def extract_composers_dataframe(df: pd.DataFrame, column_to_drop: list = None,
-                                filter_duplicate: bool = True) -> pd.DataFrame:
-    """
-    Extract the composers dataframe from the movies dataframe.
-
-    Parameters
-    ----------
-    df: The movies dataframe
-    column_to_drop: List of columns to drop from the dataframe before returning the composers dataframe
-    keep_duplicate: Whether to keep duplicated composers value
-
-    Returns
-    -------
-    The composers dataframe
-    """
-
-    exploded_df = df.dropna(subset='composers').explode('composers')
-
-    if filter_duplicate:
-        # Only keep first occurrences of each composer
-        exploded_df.drop_duplicates(subset='composers', inplace=True)
-
-    (exploded_df['c_id'], exploded_df['c_name'], exploded_df['c_birthday'], exploded_df['c_gender'],
-     exploded_df['c_homepage'], exploded_df['c_place_of_birth'], exploded_df['c_date_first_appearance']) = \
-        zip(*exploded_df.composers.apply(
-            lambda c: (c.id, c.name, c.birthday, c.gender, c.homepage, c.place_of_birth, c.date_first_appearance)
-        ))
-
-    if column_to_drop is not None:
-        # Keep only the composers
-        exploded_df.drop(columns=column_to_drop, inplace=True)
-        # exploded_df.drop(columns=['box_office_revenue', 'name', 'genres', 'tmdb_id', 'release_date', 'countries'],
-        #                 inplace=True)
-
-    # transform date column in date type
-    exploded_df['c_birthday'] = pd.to_datetime(exploded_df.c_birthday)
-    exploded_df['c_date_first_appearance'] = pd.to_datetime(exploded_df.c_date_first_appearance)
-
-    return exploded_df.drop('composers', axis='columns')
-
-
-def calculate_composer_age_fst_appearance(composer_df: pd.DataFrame, filter_outlier: bool = True) -> pd.DataFrame:
+def calculate_composer_age_fst_appearance(movies: pd.DataFrame, filter_outlier: bool = True) -> pd.DataFrame:
     """
     Calculate and append the composer's age at their first movie appearance
     Calculate the age in days and in years
 
     Parameters
     ----------
-    composer_df: The dataframe of the composers
+    movies: The movie dataframe
     filter_outlier: Whether to filter out the outliers or not.
 
     Returns
     -------
-    The dataframe of the composers with the new columns
+    The dataframe of the composers with the new columns [c_age_first_appearance_days, c_age_first_appearance_years]
     """
 
-    result = composer_df.copy()
+    result = movies.copy()
+
+    # Get composers, and only keep first row as we are interested in composers attributes which have been duplicated
+    # in each group, so only need first one
+    result = extract_composers_dataframe(result, True).apply(lambda row: row.iloc[0])[
+        ['c_birthday', 'c_date_first_appearance']]
+
     result.dropna(subset=['c_birthday', 'c_date_first_appearance'], inplace=True)
 
     result[['c_age_first_appearance_days', 'c_age_first_appearance_years']] = \
@@ -84,9 +50,45 @@ def calculate_composer_age_fst_appearance(composer_df: pd.DataFrame, filter_outl
     return result
 
 
-def get_average_age_first_appearance_days(composer_df: pd.DataFrame) -> float:
+def calculate_composer_age_highest_box_office(movies: pd.DataFrame) -> pd.DataFrame:
     """
-    Calculate the average age of the first appearance of a composers in a movie in days
+    Calculate and append the composer's age at their highest box office revenue
+    Calculate the age in days and in years
+
+    Parameters
+    ----------
+    movies: The movie dataframe
+
+    Returns
+    -------
+    The dataframe of the composers with the new columns [c_age_highest_revenue_days, c_age_highest_revenue_years]
+    """
+
+    result = movies.copy()
+
+    result = extract_composers_dataframe(result, True)
+
+    result = result.apply(
+        lambda df_by_id: df_by_id.sort_values(by='box_office_revenue', ascending=False).iloc[0])
+
+    result['release_date'] = pd.to_datetime(result.release_date)
+
+    result.dropna(subset=['c_birthday', 'release_date'], inplace=True)
+
+    # TO exclude composers such as Vivaldi or Mozart that are too old to be meaningful
+    result.query('c_birthday > 1900', inplace=True)
+
+    result[['c_age_highest_revenue_days', 'c_age_highest_revenue_years']] = \
+        result.apply(lambda row: ((row['release_date'] - row['c_birthday']).days,
+                                  (row['release_date'] - row['c_birthday']).days / 365.25),
+                     axis='columns', result_type='expand')
+
+    return result
+
+
+def get_average_age_first_appearance(composer_df: pd.DataFrame) -> (float, float):
+    """
+    Calculate the average age of the composer at his first appearance. Return the average in days and in years
 
     Parameters
     ----------
@@ -94,40 +96,39 @@ def get_average_age_first_appearance_days(composer_df: pd.DataFrame) -> float:
 
     Returns
     -------
-    The average age for the first apparition of a composer in a movie
+    The tuple of the average age in days and in years
     """
-    return composer_df.c_age_first_appearance_days.mean()
+    return composer_df.c_age_first_appearance_days.mean(), composer_df.c_age_first_appearance_years.mean()
 
 
-def get_average_age_first_appearance_years(composer_df: pd.DataFrame) -> float:
+def get_average_age_high_box_office(composer_df: pd.DataFrame) -> (float, float, float):
     """
-    Calculate the average age of the first appearance of a composers in a movie in years
+    Calculate the average age of the composer at his highest box office revenue. Return the average in days and in years
 
     Parameters
     ----------
-    composer_df: The dataframe containing the composer's age information
+    composer_df: The dataframe containing the age information
 
     Returns
     -------
-    The average age for the first apparition of a composer in a movie
+    The tuple of the average age in days and in years
     """
-    return composer_df.c_age_first_appearance_years.mean()
+    return composer_df.c_age_highest_revenue_days.mean(), composer_df.c_age_highest_revenue_years.mean()
 
 
-def plot_composer_by_age_range(composer_df: pd.DataFrame, bin_nb: int = 50, kde: bool = True) -> None:
+def plot_composer_by_age_range(composer_df: pd.DataFrame, x_data: str, bin_nb: int = 50, kde: bool = True) -> None:
     """
     Plot the histogram of the count of composers in a certain age range
 
     Parameters
     ----------
     composer_df: The dataframe containing the composer's age information
+    x_data: The name of the column to use as the x-axis data
     bin_nb: the number of bin to use for the histogram
     kde: Whether to plot the kernel density estimate or not
 
-    -------
-
     """
-    age_fst_appearance_years = composer_df.c_age_first_appearance_years
+    age_fst_appearance_years = composer_df[x_data]
 
     ax = sns.histplot(age_fst_appearance_years, bins=bin_nb, kde=kde)
     ax.lines[0].set_color('black')

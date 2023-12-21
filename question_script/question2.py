@@ -135,4 +135,5 @@ def plot_composer_by_age_range(composer_df: pd.DataFrame, x_data: str, bin_nb: i
     plt.title('Number of composers by age range')
     plt.ylabel('Count of composers')
     plt.xlabel('Age at first appearance')
+    plt.savefig(x_data+'_Q2.png', transparent=True)
     plt.show()

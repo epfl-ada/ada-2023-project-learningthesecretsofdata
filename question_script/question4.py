@@ -22,9 +22,24 @@ def heat_map_world(df: pd.DataFrame, color: str):
                         title='Heat Map of Locations',
                         labels={'location': 'Number of Composers'}
                         )
-    # Fix the layout template
-    fig.update_layout(template='plotly')
+    fig.update_layout(
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)'
+    )
+
+    fig.update_layout(
+        autosize=True,
+        margin = dict(
+            l=0,
+            r=0,
+            b=0,
+            t=0,
+            pad=4,
+            autoexpand=True
+        )
+    )
 
     # Show the figure
     fig.show()
+    fig.write_html('heat_map_world.html')
 

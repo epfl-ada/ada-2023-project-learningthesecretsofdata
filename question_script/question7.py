@@ -7,17 +7,26 @@ from scipy.stats import pearsonr
 
 
 def get_merged_and_pop_df():
+    """
+    Get the merged dataframe and the popularity dataframe for Q7
+    """
+
+    # Read the pickle files
     df = pd.read_pickle('dataset/album_id_and_musics.pickle')
     df1 = pd.read_pickle("dataset/movie_album_and_revenue.pickle")
 
+    # Drop the rows with missing values
     df1 = df1[~df1["album_id"].isna()]
     df1.drop_duplicates(subset=['movie_name'], inplace=True)
 
+    # Drop the rows with missing values
     empty = df["track"].isna()
     df = df[~empty]
+
     df.reset_index(inplace=True)
     df["popularity"] = df["track"].apply(lambda x: x.popularity)
 
+    # Get the mean popularity for each album
     pop_df = df[['album_id', 'popularity']].groupby('album_id').mean()
     pop_df = pop_df[~pop_df["popularity"].isna()]
     pop_df.reset_index(inplace=True)
@@ -28,6 +37,14 @@ def get_merged_and_pop_df():
 
 
 def plot_popularity_histogram(pop_df: pd.DataFrame):
+    """
+    Plot the histogram of the popularity
+
+    Parameters
+    ----------
+    pop_df: pd.DataFrame
+        The dataframe containing the popularity information
+    """
     fig = make_subplots()
     fig.add_trace(go.Histogram(x=pop_df['popularity'], nbinsx=5))
 
@@ -52,21 +69,53 @@ def plot_popularity_histogram(pop_df: pd.DataFrame):
 
 
 def plot_scatter_popularity_revenue_by_year(merged_df: pd.DataFrame):
+    """
+    Plot the scatter plot of popularity and revenue by year
+
+    Parameters
+    ----------
+    merged_df: pd.DataFrame
+        The dataframe containing the popularity and revenue information
+    """
     fig = px.scatter(merged_df, x="popularity", y="movie_revenue", color='release_date', trendline="ols")
     fig.show()
 
 
 def plot_scatter_popularity_revenue_overall(merged_df: pd.DataFrame):
+    """
+    Plot the scatter plot of popularity and revenue overall
+
+    Parameters
+    ----------
+    merged_df: pd.DataFrame
+        The dataframe containing the popularity and revenue information
+    """
     fig = px.scatter(merged_df, x="popularity", y="movie_revenue", trendline="ols")
     fig.show()
 
 
 def print_pearson_correlation(merged_df: pd.DataFrame):
+    """
+    Print the pearson correlation between popularity and revenue
+
+    Parameters
+    ----------
+    merged_df: pd.DataFrame
+        The dataframe containing the popularity and revenue information
+    """
     corr, _ = pearsonr(merged_df["popularity"], merged_df["movie_revenue"])
     print('Pearsons correlation: %.3f' % corr)
 
 
 def plot_heatmap_correlation(merged_df: pd.DataFrame):
+    """
+    Plot the heatmap of correlation between popularity and revenue
+
+    Parameters
+    ----------
+    merged_df: pd.DataFrame
+        The dataframe containing the popularity and revenue information
+    """
     merged_df['release_date'] = pd.to_datetime(merged_df['release_date'])
 
     # Extract the year from the 'release_date'

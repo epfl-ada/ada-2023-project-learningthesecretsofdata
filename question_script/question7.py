@@ -1,7 +1,9 @@
 import pandas as pd
 import plotly.graph_objs as go
 import plotly.express as px
+import seaborn as sns
 
+from matplotlib import pyplot as plt
 from plotly.subplots import make_subplots
 from scipy.stats import pearsonr
 
@@ -68,6 +70,31 @@ def plot_popularity_histogram(pop_df: pd.DataFrame):
     fig.show()
 
 
+def plot_popularity_histogram_matplt(pop_df: pd.DataFrame):
+    """
+    Plot the histogram of the popularity using Matplotlib.
+
+    Parameters
+    ----------
+    pop_df: pd.DataFrame
+        The dataframe containing the popularity information.
+    """
+
+    # Set the number of bins
+    bins = 50
+
+    # Create the histogram
+    plt.hist(pop_df['popularity'], bins=bins, color='blue', edgecolor='black')
+
+    # Set the title and labels
+    plt.title('Histogram of Popularity')
+    plt.xlabel('Popularity')
+    plt.ylabel('Count')
+
+    # Show the plot
+    plt.show()
+
+
 def plot_scatter_popularity_revenue_by_year(merged_df: pd.DataFrame):
     """
     Plot the scatter plot of popularity and revenue by year
@@ -81,6 +108,38 @@ def plot_scatter_popularity_revenue_by_year(merged_df: pd.DataFrame):
     fig.show()
 
 
+def plot_scatter_popularity_revenue_by_year_matplotlib(merged_df: pd.DataFrame):
+    """
+    Plot the scatter plot of popularity and revenue by year with Matplotlib
+
+    Parameters
+    ----------
+    merged_df: pd.DataFrame
+        The dataframe containing the popularity and revenue information
+    """
+
+    merged_df.dropna(inplace=True)
+    # drop row with 0 value
+    merged_df = merged_df[merged_df["movie_revenue"] > 0]
+    merged_df = merged_df[merged_df["popularity"] > 0]
+
+    # popularity and revenue cast as int
+    merged_df["popularity"] = merged_df["popularity"].astype(int)
+    merged_df["movie_revenue"] = merged_df["movie_revenue"].astype(int)
+
+    # Create a scatter plot using seaborn for better color handling and regression line
+    sns.lmplot(x='popularity', y='movie_revenue', hue='release_date', data=merged_df,
+               aspect=1.5, fit_reg=True, scatter_kws={'alpha': 0.8},legend=False)
+
+    # Set title and labels
+    plt.title('Scatter Plot of Popularity vs Movie Revenue by Year')
+    plt.xlabel('Popularity')
+    plt.ylabel('Movie Revenue')
+
+    # Show the plot
+    plt.show()
+
+
 def plot_scatter_popularity_revenue_overall(merged_df: pd.DataFrame):
     """
     Plot the scatter plot of popularity and revenue overall
@@ -92,6 +151,28 @@ def plot_scatter_popularity_revenue_overall(merged_df: pd.DataFrame):
     """
     fig = px.scatter(merged_df, x="popularity", y="movie_revenue", trendline="ols")
     fig.show()
+
+
+def plot_scatter_popularity_revenue_overall_matplotlib(merged_df: pd.DataFrame):
+    """
+    Plot the scatter plot of popularity and revenue overall with Matplotlib
+
+    Parameters
+    ----------
+    merged_df: pd.DataFrame
+        The dataframe containing the popularity and revenue information
+    """
+    # Create a scatter plot with a regression line
+    sns.lmplot(x='popularity', y='movie_revenue', data=merged_df, fit_reg=True, scatter_kws={'alpha': 0.8},
+               line_kws={'color': 'red'})
+
+    # Set title and labels
+    plt.title('Scatter Plot of Popularity vs Movie Revenue')
+    plt.xlabel('Popularity')
+    plt.ylabel('Movie Revenue')
+
+    # Show the plot
+    plt.show()
 
 
 def print_pearson_correlation(merged_df: pd.DataFrame):
@@ -116,14 +197,15 @@ def plot_heatmap_correlation(merged_df: pd.DataFrame):
     merged_df: pd.DataFrame
         The dataframe containing the popularity and revenue information
     """
-    merged_df['release_date'] = pd.to_datetime(merged_df['release_date'])
+    merged_df_modified = merged_df.copy()
+    merged_df_modified['release_date'] = pd.to_datetime(merged_df_modified['release_date'])
 
     # Extract the year from the 'release_date'
-    merged_df['year'] = merged_df['release_date'].dt.year
+    merged_df_modified['year'] = merged_df_modified['release_date'].dt.year
 
     # Group by year and calculate the correlation between 'movie_revenue' and 'popularity'
-    correlation_by_year = merged_df.groupby('year')[['movie_revenue', 'popularity']].corr().iloc[0::2, -1].reset_index()
-    mean_revenue_by_year = merged_df.groupby('year')['movie_revenue'].mean().reset_index()
+    correlation_by_year = merged_df_modified.groupby('year')[['movie_revenue', 'popularity']].corr().iloc[0::2, -1].reset_index()
+    mean_revenue_by_year = merged_df_modified.groupby('year')['movie_revenue'].mean().reset_index()
 
     correlation_by_year['mean_revenue'] = mean_revenue_by_year['movie_revenue']
 
@@ -146,3 +228,54 @@ def plot_heatmap_correlation(merged_df: pd.DataFrame):
     # Update xaxis because there is only one correlation value per year
     fig.update_xaxes(side="top")
     fig.show()
+
+
+def plot_heatmap_correlation_matplotlib(merged_df: pd.DataFrame):
+    """
+    Plot the heatmap of correlation between popularity and revenue with Matplotlib
+
+    Parameters
+    ----------
+    merged_df: pd.DataFrame
+        The dataframe containing the popularity and revenue information
+    """
+
+    merged_df_modified = merged_df.copy()
+    merged_df_modified.dropna(inplace=True)
+    # drop row with 0 value
+    merged_df_modified = merged_df_modified[merged_df_modified["movie_revenue"] > 0]
+    merged_df_modified = merged_df_modified[merged_df_modified["popularity"] > 0]
+    merged_df_modified['release_date'] = merged_df_modified['release_date'].astype(int)
+    merged_df_modified = merged_df_modified[merged_df_modified["release_date"] > 1000]
+
+    # Group by year and calculate the correlation between 'movie_revenue' and 'popularity'
+    correlation_by_year = merged_df_modified.groupby('release_date')[['movie_revenue', 'popularity']].corr().iloc[0::2, -1].reset_index()
+    mean_revenue_by_year = merged_df_modified.groupby('release_date')['movie_revenue'].mean().reset_index()
+
+    correlation_by_year['mean_revenue'] = mean_revenue_by_year['movie_revenue']
+
+    # Rename the columns for the heatmap
+    correlation_by_year.columns = ['year', 'drop', 'correlation', 'mean_revenue']
+    correlation_by_year = correlation_by_year.drop(columns='drop')
+    correlation_by_year.dropna(inplace=True)
+    correlation_by_year = correlation_by_year[correlation_by_year["correlation"] < 0.99]
+    correlation_by_year = correlation_by_year[correlation_by_year["correlation"] > -0.99]
+
+    correlation_by_year['year'] = correlation_by_year['year'].astype(int)
+    correlation_by_year['correlation'] = correlation_by_year['correlation'].astype(float)
+    correlation_by_year['mean_revenue'] = correlation_by_year['mean_revenue'].astype(float)
+
+    #round correlation
+    correlation_by_year['correlation'] = correlation_by_year['correlation'].apply(lambda x: round(x, 3))
+
+    # Create the heatmap
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(correlation_by_year.pivot(index='year', columns='correlation', values='mean_revenue'), annot=True, fmt=".2f", cmap='viridis')
+
+    # Set the title and labels
+    plt.title('Heatmap of Correlation Between Movie Revenue and Popularity by Year')
+    plt.xlabel('Correlation')
+    plt.ylabel('Year')
+
+    # Show the plot
+    plt.show()

@@ -4,19 +4,16 @@ from helpers import *
 from question_script.question_helper import extract_composers_dataframe
 
 
-def prepare_data_for_q3():
+def prepare_data_for_q3(enhanced_movies):
     """
     Prepare the data for the question 3:
-    - Load the cleaned and enriched data set (created via enrich_movie_data.py script)
-    - Drop all the columns which are not release date and composer
+    - Drop all the columns which are not release date, box office revenue and composer
     - Drop all the rows which have no composer or no release date
     - Explode the composer column to have only one composer per row
-
-    :return:
+    - Keep only c_id and c_name and rename them to composer_id and composer_name
+    :param enhanced_movies: The movies dataframe
+    :return: The dataframe with the required columns
     """
-    # Load the cleaned and enriched data set (created via enrich_movie_data.py script)
-    enhanced_movies = pd.read_pickle('dataset/clean_enrich_movies.pickle')
-
     # Drop all the columns which are not release date and composer
     movies = enhanced_movies[['release_date', 'composers', 'box_office_revenue']]
 
@@ -44,16 +41,16 @@ def group_by_composer_id(df):
     return df.groupby('composer_id')
 
 
-def filter_by_top_composers(df, nb_top_composers=10):
+def filter_by_top_composers(df, nb_top_composers=5):
     """
-    Filter the dataframe by the composers with the most movies
+    Filter the dataframe by the composers with the highest number of movies they contributed to
     :param df:
     :param nb_top_composers:
     :return:
     """
     top_composers = df['composer_id'].value_counts().head(nb_top_composers).index
 
-    # Keep only the top 10 composers with their index
+    # Keep only the top 5 composers with their index
     return df[df['composer_id'].isin(top_composers)]
 
 

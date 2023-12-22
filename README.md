@@ -194,9 +194,7 @@ mapping dictionary. The resulting dictionary is then transformed into a new data
 ├── 27.11.23 - Work Question 1
 │  
 ├── 30.11.23 - Work Question 2
-│  
-├── 04.12.23 - Homework 2 deadline
-│  
+│    
 ├── 04.12.23 - Work Question 3
 │  
 ├── 07.12.23 - Work Questions 4 & 5

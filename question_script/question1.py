@@ -7,12 +7,20 @@ import pandas as pd
 
 def question_1(movie_music_genre_df: pd.DataFrame, min_revenue: int, max_revenue: int,
                soundtrack_in_genre: bool = True) -> pd.DataFrame:
-    """Description if needed"""
-    selected_movie_music_genre_df = movie_selection_over_revenue(df=movie_music_genre_df,
+    """Create a dataframe classifying the music genre in function of given parameters
+
+    :param movie_music_genre_df: dataframe with [genre, movie_names, box_office_revenue]
+    :param min_revenue: allows to filter some movies (private information to see if relevant difference to show in web)
+    :param max_revenue: allows to filter some movies (private information to see if relevant difference to show in web)
+    :param soundtrack_in_genre: tell the function to display the genres w/ (or w/o) "soundtrack" in it.
+
+    :returns: Dataframe with sorted music genre in function of their number of appearance in movies.
+    """
+    selected_movie_music_genre_df = _movie_selection_over_revenue(df=movie_music_genre_df,
                                                                  min_revenue=min_revenue,
                                                                  max_revenue=max_revenue)
 
-    genre_count = genre_distribution_over_movies(selected_movie_music_genre_df).sort_values(by='count', ascending=False)
+    genre_count = _genre_distribution_over_movies(selected_movie_music_genre_df).sort_values(by='count', ascending=False)
 
     if soundtrack_in_genre:
         return genre_count
@@ -20,53 +28,17 @@ def question_1(movie_music_genre_df: pd.DataFrame, min_revenue: int, max_revenue
         return genre_count[~genre_count["genre"].str.contains('soundtrack', case=False)]
 
 
-def create_db_to_link_composers_to_movies(movies: pd.DataFrame) -> pd.DataFrame:
-    """Description if needed"""
-    # Initialize the new database
-    db_to_link_composers_to_movies = pd.DataFrame(
-        columns=['tmdb_id', 'comp_id', 'movie_name', 'movie_revenue', 'composer_name', 'release_date','composer_place_of_birth']
-    )
-    # Set the index to be unique (pair of ids)
-    db_to_link_composers_to_movies.set_index(['tmdb_id', 'comp_id'], inplace=True)
-
-    # Description TODO
-    for _, movie in movies.iterrows():
-        movie_id = movie['tmdb_id']
-        movie_name = movie['name']
-        movie_revenue = movie['box_office_revenue']
-        composers = movie['composers']
-        release_date = movie['release_date']
-
-        if type(composers) == list:  # meaning we have information about composers, otherwise float nan returned
-            for composer in composers:
-                comp_id = composer.id
-                comp_name = composer.name
-                comp_place_of_birth = composer.place_of_birth
-                db_to_link_composers_to_movies.loc[(movie_id, comp_id), :] = \
-                    {'movie_name': movie_name,
-                     'movie_revenue': movie_revenue,
-                     'composer_name': comp_name,
-                     'release_date': release_date,
-                     'composer_place_of_birth': comp_place_of_birth}
-        else:
-            pass
-
-    return db_to_link_composers_to_movies
-
-
-def movie_selection_over_revenue(df: pd.DataFrame, min_revenue: int, max_revenue: int) -> pd.DataFrame:
-    """Description"""
-    movie_in_revenue_range = df.movie_revenue.apply(lambda r: True if min_revenue <= r <= max_revenue else False)
+def _movie_selection_over_revenue(df: pd.DataFrame, min_revenue: int, max_revenue: int) -> pd.DataFrame:
+    """private function to select movie over their box office revenue"""
+    movie_in_revenue_range = df.box_office_revenue.apply(lambda r: True if min_revenue <= r <= max_revenue else False)
     return df[movie_in_revenue_range]
 
 
-def genre_distribution_over_movies(df: pd.DataFrame) -> pd.DataFrame:
-    """Description"""
+def _genre_distribution_over_movies(df: pd.DataFrame) -> pd.DataFrame:
+    """private function to compute the genre distribution"""
     # Delete movies with no information about their genre
     movies_with_info = df.genres.apply(lambda g: False if not g else True)  # check if g is empty
     df = df[movies_with_info]
-    number_of_movies = len(df.groupby('movie_name'))  # TODO: Discuss with the group the pertinence to tell the user on
-    # how many movies the current analysis is done.
 
     # Initialize the new database
     genre_distribution = pd.DataFrame(

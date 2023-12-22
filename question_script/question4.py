@@ -30,10 +30,10 @@ def heat_map_world(df: pd.DataFrame, color: str):
     fig.update_layout(
         autosize=True,
         margin = dict(
-            l=0,
-            r=0,
-            b=0,
-            t=0,
+            #l=0,
+            #r=0,
+            #b=0,
+            #t=0,
             pad=4,
             autoexpand=True
         )

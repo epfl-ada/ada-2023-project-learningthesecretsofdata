@@ -83,6 +83,10 @@ def calculate_composer_age_highest_box_office(movies: pd.DataFrame) -> pd.DataFr
                                   (row['release_date'] - row['c_birthday']).days / 365.25),
                      axis='columns', result_type='expand')
 
+    # Some composers have weird birthdate, which result in age at highest revenue years being negative, so only
+    # take positive values
+    result.query('c_age_highest_revenue_years > 0', inplace=True)
+
     return result
 
 
@@ -137,3 +141,4 @@ def plot_composer_by_age_range(composer_df: pd.DataFrame, x_data: str, bin_nb: i
     plt.xlabel('Age at first appearance')
     plt.savefig(x_data+'_Q2.png', transparent=True)
     plt.show()
+    return ax

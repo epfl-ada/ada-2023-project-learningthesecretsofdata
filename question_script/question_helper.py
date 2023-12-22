@@ -32,6 +32,9 @@ def extract_composers_data(df: pd.DataFrame, group_by_composer_id: bool = False)
 
     exploded_df.drop('composers', axis='columns', inplace=True)
 
+    # Reset the index since the shape of the dataframe has changed
+    exploded_df.reset_index(drop=True, inplace=True)
+
     if group_by_composer_id:
         # Group the dataframe by composer id
         exploded_df = exploded_df.groupby('c_id')

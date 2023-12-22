@@ -216,12 +216,6 @@ is then transformed into a new dataframe and saved in our repository as `mapping
 
 ```
 
-## Organization Within the Team
-
-| Xavier       | Paulo   | David        | Luca    | Joris        |
-|--------------|---------|--------------|---------|--------------|
-| Q.7, Website | Q.1 & 4 | Q.2, Website | Q.6 & 5 | Q.3, Website |
-
 ## Contributions of the Team Members
 
 | Xavier      | Paulo            | David    | Luca    | Joris       |

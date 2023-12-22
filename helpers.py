@@ -89,7 +89,7 @@ def get_composers() -> pd.DataFrame:
     enhanced_movies = pd.read_pickle('dataset/clean_enrich_movies.pickle')
 
     # Keep only the list of composers of each movie
-    composers_list = enhanced_movies[['composers', 'release_date']]
+    composers_list = enhanced_movies[['composers', 'release_date', 'box_office_revenue']]
 
     # Drop NaN values
     composers_list = composers_list.dropna()

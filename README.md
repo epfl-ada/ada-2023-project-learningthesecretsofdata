@@ -48,6 +48,7 @@
         <li><a href="#data-loading">Data Loading</a></li>
         <li><a href="#data-cleaning">Data Cleaning</a></li>
         <li><a href="#data-visualization">Data Visualization</a></li>
+        <li><a href="#data-processing">Data Processing</a></li>
       </ul>
     </li>
     <li><a href="#proposed-timeline">Timeline</a></li>

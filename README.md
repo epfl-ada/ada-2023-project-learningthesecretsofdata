@@ -134,6 +134,6 @@ None
 | Xavier       | Paulo   | David        | Luca    | Joris        |
 |--------------|---------|--------------|---------|--------------|
 | Q.7          | Q.1     | Q.2          | Q.6     | Q.3          |
-| API spotify  | Q.4     | API TMDB     | Q.5     | API Spotify  |
+| API Spotify  | Q.4     | API TMDB     | Q.5     | API Spotify  |
 | Website      | Website | Website      | Website | Website      |
 

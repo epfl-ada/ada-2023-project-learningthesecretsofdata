@@ -69,7 +69,7 @@ def create_plotly_number_of_movies(movie_grouped_by_top_composer):
 
     # Create a column count which contains the number of movies per year and per composer
     # Group by composer and year bin, count the number of movies
-    movie_counts = movie_grouped_by_top_composer.groupby(['composer_name', 'year_bin']).size()
+    movie_counts = movie_grouped_by_top_composer.groupby(['composer_name', 'year_bin'], observed=False).size()
 
     # Unstack the 'composer_name' level to create a DataFrame
     movie_counts_df = movie_counts.unstack(level='composer_name')
@@ -81,12 +81,12 @@ def create_plotly_number_of_movies(movie_grouped_by_top_composer):
     movie_counts_df.columns = ['year_bin'] + list(movie_counts_df.columns[1:])
     movie_counts_df = movie_counts_df.sort_values(by='year_bin')
 
-    movie_counts_df['year_bin'] = (movie_counts_df['year_bin'].astype(str)
-                                   .replace('(', '')
-                                   .replace(')', '')
-                                   .replace('[', '')
-                                   .replace(']', '')
-                                   .replace(',', ' -'))
+    # Replace bins like (1900, 1905] by 1900 - 1905
+    movie_counts_df['year_bin'] = movie_counts_df['year_bin'].apply(
+        lambda x: str(x).replace('(', '')
+        .replace(']', '')
+        .replace(',', ' -')
+    )
 
     fig = px.line(movie_counts_df, x='year_bin', y=list(movie_counts_df.columns[1:]),
                   title='Number of movies per composer')
@@ -129,20 +129,15 @@ def create_plotly_number_of_movies(movie_grouped_by_top_composer):
                 yanchor="top",
                 font=dict(color='#000000')
             ),
-        ]
-    )
-
-    fig.update_layout(
+        ],
         xaxis_title="Year",
         yaxis_title="Number of Movies",
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        legend_title_text='Composers',
     )
     fig.update_traces(mode='lines')
 
-    # Transparent Background
-    fig.update_layout(
-        plot_bgcolor='rgba(0,0,0,0)',
-        paper_bgcolor='rgba(0,0,0,0)'
-    )
     fig.write_html("Q3_number_of_movies_per_year.html")
 
 
@@ -158,9 +153,16 @@ def create_plotly_box_office_revenue(movie_grouped_by_top_composer):
     new_df['year_bin'] = new_df['year_bin'].astype(str)
 
     # Sum the box office revenue per year and per composer
-    new_df = new_df.groupby(['composer_name', 'year_bin'])['box_office_revenue'].sum().reset_index()
+    new_df = new_df.groupby(['composer_name', 'year_bin'], observed=False)['box_office_revenue'].sum().reset_index()
 
     new_df = new_df.sort_values(by='year_bin')
+
+    # Replace bins like (1900, 1905] by 1900 - 1905
+    new_df['year_bin'] = new_df['year_bin'].apply(
+        lambda x: str(x).replace('(', '')
+        .replace(']', '')
+        .replace(',', ' -')
+    )
 
     fig = px.line(new_df, x='year_bin', y='box_office_revenue', color='composer_name',
                   title='Sum of the Box-Office Revenues per composer')
@@ -204,20 +206,14 @@ def create_plotly_box_office_revenue(movie_grouped_by_top_composer):
                 yanchor="top",
                 font=dict(color='#000000')
             ),
-        ]
-    )
-
-    fig.update_layout(
+        ],
         xaxis_title="Year",
         yaxis_title="Sum of the Box-Office Revenues",
-    )
-
-    fig.update_traces(mode='lines')
-
-    # Transparent Background
-    fig.update_layout(
+        legend_title_text='Composers',
         plot_bgcolor='rgba(0,0,0,0)',
         paper_bgcolor='rgba(0,0,0,0)'
     )
+
+    fig.update_traces(mode='lines')
 
     fig.write_html("Q3_box_office_revenue_per_year.html")

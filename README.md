@@ -27,7 +27,8 @@
 
 ---
 
-**Authors:** [Luca Carroz](https://people.epfl.ch/emilie.carroz), [David Schroeter](https://people.epfl.ch/david.schroeter),
+**Authors:
+** [Luca Carroz](https://people.epfl.ch/emilie.carroz), [David Schroeter](https://people.epfl.ch/david.schroeter),
 [Xavier Ogay](https://people.epfl.ch/xavier.ogay), [Joris Monnet](https://people.epfl.ch/joris.monnet),
 [Paulo Ribeiro de Carvalho](https://people.epfl.ch/paulo.ribeirodecarvalho)
 
@@ -65,10 +66,10 @@
 
 
 <!-- ABOUT THE PROJECT -->
+
 ## About The Project
 
 [![Road-to-holywood][product-screenshot]](https://learningthesecretsofdata.github.io/CS-401_Website/)
-
 
 ### Abstract
 
@@ -76,7 +77,8 @@ A 20-year-old aspiring musician, Stanislas, fueled by a passion for the film ind
 career. His ultimate dream? To hear one of his productions featured in a Hollywood film and become one of the planet's
 top composers. To increase his chances, he turns to a team of Data Scientists known as LSD.
 
-The "LearningtheSecretsofData" team's mission is to identify trends shared among successful music composers and compositions, ultimately
+The "LearningtheSecretsofData" team's mission is to identify trends shared among successful music composers and
+compositions, ultimately
 optimizing choices for our young musician. This is not an easy task but the team is driven by the wish of helping
 Stanislas. How could they provoke a cascADA of successful choices in Stany career.
 
@@ -89,7 +91,6 @@ achieve his goal? Let’s see what’s the plan LSD had concocted for Stanislas.
 * [![Python][Python.org]][Python-url]
 * [![Plotly][Plotly.com]][Plotly-url]
 * [![BeautifulJekyll][BeautifulJekyll.com]][BeautifulJekyll-url]
-
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -119,8 +120,10 @@ Missing attributes about movie's composers :
 - First appearance in movie credits
 
 We use a free to use API ([TMDB](https://www.themoviedb.org/?language=fr)) to enrich our movies' information. Also, some
-important features are missing in some observation, that's why we dropped movies not containing the needed information. A specific
-script has been created to be run once and create our `clean_enrich_movie.pickle` dataset. Go to `enrich_movie_data.py` and
+important features are missing in some observation, that's why we dropped movies not containing the needed information.
+A specific
+script has been created to be run once and create our `clean_enrich_movie.pickle` dataset. Go to `enrich_movie_data.py`
+and
 its linked library `tmdb/tmdbDataLoader.py` for more details on how we retrieved these information.
 
 Missing attributes about composers' musics :
@@ -129,19 +132,30 @@ Missing attributes about composers' musics :
 - Spotify's popularity
 
 To retrieve these information we used the [SpotifyAPI](https://developer.spotify.com/documentation/web-api). Since
-streams count are impossible to collect, we chose to use the [popularity score](https://developer.spotify.com/documentation/web-api/reference/get-track)
-(documentation of score at the end of web page) proposed by the API. Information are stored in `spotify_dataset.pickle` and `album_id_and_musics.pickle`.
-Go to `enrich_music_data.py`, `enrich_with_spotify_data.py` and its linked library `spotify/spotify.py` for more details on how we retrieved these information.
+streams count are impossible to collect, we chose to use
+the [popularity score](https://developer.spotify.com/documentation/web-api/reference/get-track)
+(documentation of score at the end of web page) proposed by the API. Information are stored in `spotify_dataset.pickle`
+and `album_id_and_musics.pickle`.
+Go to `enrich_music_data.py`, `enrich_with_spotify_data.py` and its linked library `spotify/spotify.py` for more details
+on how we retrieved these information.
 
-We had to proceed to a mapping between the movie's name and the album's name so that we could retrieve the popularity score of each tracks of the album. 
-To do so, we used the library [rapidfuzz](https://pypi.org/project/rapidfuzz/) which use the calculation of [FuzzyWuzzy](https://github.com/seatgeek/fuzzywuzzy) to match the movie's name and the album's name. 
-We also leverage the Fuzz ratio with some negative and positive keyword to improve the matching of soundtrack albums. 
-The matching is saved in `movie_album_and_revenue.pickle`. Then the script `enrich_with_spotify_data.py` use the previously generated matching file to retrieve all tracks of the albums. This new dataset is saved to the file `movie_album_and_revenue_with_track_ids.pickle`.
-The popularity score of each album is then computed as the mean of popularity score of each tracks of the corresponding album.
-The script `enrich_with_spotify_data.py` make each API call to retrieve data asynchroneously and in batch to speed up the process. It also save checkpoint of the data retrieved to avoid losing data in case of network error.
+We had to proceed to a mapping between the movie's name and the album's name so that we could retrieve the popularity
+score of each tracks of the album.
+To do so, we used the library [rapidfuzz](https://pypi.org/project/rapidfuzz/) which use the calculation
+of [FuzzyWuzzy](https://github.com/seatgeek/fuzzywuzzy) to match the movie's name and the album's name.
+We also leverage the Fuzz ratio with some negative and positive keyword to improve the matching of soundtrack albums.
+The matching is saved in `movie_album_and_revenue.pickle`. Then the script `enrich_with_spotify_data.py` use the
+previously generated matching file to retrieve all tracks of the albums. This new dataset is saved to the
+file `movie_album_and_revenue_with_track_ids.pickle`.
+The popularity score of each album is then computed as the mean of popularity score of each tracks of the corresponding
+album.
+The script `enrich_with_spotify_data.py` make each API call to retrieve data asynchroneously and in batch to speed up
+the process. It also save checkpoint of the data retrieved to avoid losing data in case of network error.
 
-Please note that a personal API key is needed to successfully run the scripts for TMDB ([create key](https://developer.themoviedb.org/reference/intro/getting-started))
-and Spotify ([create key](https://developer.spotify.com/documentation/web-api/tutorials/getting-started)) dataset creation.
+Please note that a personal API key is needed to successfully run the scripts for
+TMDB ([create key](https://developer.themoviedb.org/reference/intro/getting-started))
+and Spotify ([create key](https://developer.spotify.com/documentation/web-api/tutorials/getting-started)) dataset
+creation.
 Make sure to create a file `.env` with your API bearer token using the `.env_example` file as template.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -162,12 +176,21 @@ We clean the data by removing the entry with missing value in their features 'na
 If the API call fails to return a value for the revenue, we remove the entry.
 We also format the release date to integer and sort the data by revenue.
 
-
 ### Data Visualization
 
 We use a GitHub page to present our results. The plots are interactive and were created using the `plotly`
-library. Notably, we used a world map with the number of composers per country to answer the question 4. 
+library. Notably, we used a world map with the number of composers per country to answer the question 4.
 We also used pie charts, bar charts, line plots, and more. Everything is interactive!
+
+### Data Processing
+
+We utilize the [OpenAI API](https://platform.openai.com/docs/introduction) to assist us in processing data.
+Specifically, in order to address one of our research questions, we require a method to convert locations into
+countries. For instance, the input "New York City, New York, United States of America" should be associated with the
+output "United States." Additionally, various location variations should be standardized to the same country name; for
+example, both "USA" and "United States" should be mapped to "United States." To achieve this mapping, we provide the
+GPT-4 model with our dataset through an API request, asking it to provide a mapping dictionary. The resulting dictionary
+is then transformed into a new dataframe and saved in our repository as `mapping_locations_to_country.csv`.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -206,28 +229,32 @@ We also used pie charts, bar charts, line plots, and more. Everything is interac
 |--------------|---------|--------------|---------|--------------|
 | Q.7, Website | Q.1 & 4 | Q.2, Website | Q.6 & 5 | Q.3, Website |
 
-## Questions for TAs
-
-None
 
 ## Contributions of the Team members
 
-| Xavier       | Paulo   | David        | Luca    | Joris        |
-|--------------|---------|--------------|---------|--------------|
-| Q.7          | Q.1     | Q.2          | Q.6     | Q.3          |
-| API Spotify  | Q.4     | API TMDB     | Q.5     | API Spotify  |
-| Website      | Website | Website      | Website | Website      |
+| Xavier      | Paulo   | David    | Luca    | Joris       |
+|-------------|---------|----------|---------|-------------|
+| Q.7         | Q.1     | Q.2      | Q.6     | Q.3         |
+| API Spotify | Q.4     | API TMDB | Q.5     | API Spotify |
+| Website     | Website | Website  | Website | Website     |
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
+
 [Python.org]: https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white
+
 [Python-url]: https://www.python.org/
+
 [Plotly.com]: https://img.shields.io/badge/Plotly-239120?style=for-the-badge&logo=plotly&logoColor=white
+
 [Plotly-url]: https://plotly.com/
+
 [BeautifulJekyll.com]: https://img.shields.io/badge/Beautiful%20Jekyll-%23FF0000.svg?style=for-the-badge&logo=Jekyll&logoColor=white
+
 [BeautifulJekyll-url]: https://beautifuljekyll.com/
+
 [product-screenshot]: assets/img/header_holy.png
 
 

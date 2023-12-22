@@ -1,3 +1,5 @@
+"""Script allowing to create a mapping between locations and countries with GPT"""
+
 import pandas as pd
 import ast
 from openai import OpenAI
@@ -15,8 +17,8 @@ completion = client.chat.completions.create(
     model="gpt-4",  # choose your model and check the corresponding pricing please
     messages=[
         {"role": "system",
-         "content": "Only return the asked information without phrasing your answer. Return answer in the python "
-                    "variable asked. Be sure to return a variable as long as the given entry."},
+         "content": "Only return the asked information without phrasing or intorducing your answer. Return answer in "
+                    "the python variable asked. Be sure to return a variable as long as the given entry."},
 
         {"role": "user",
          "content": f"Map using a python dictionary each location (meaning each variable of the following list) to "

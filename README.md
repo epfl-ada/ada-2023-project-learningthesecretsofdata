@@ -51,8 +51,8 @@
         <li><a href="#data-processing">Data Processing</a></li>
       </ul>
     </li>
-    <li><a href="#proposed-timeline">Timeline</a></li>
-    <li><a href="#organization-within-the-team">Organization within the Team</a></li>
+    <li><a href="#project-timeline">Project Timeline</a></li>
+    <li><a href="#organization-within-the-team">Organization Within the Team</a></li>
   </ol>
 </details>
 
@@ -187,7 +187,7 @@ is then transformed into a new dataframe and saved in our repository as `mapping
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-## Proposed timeline
+## Project Timeline
 
 ```
 ├── 20.11.23 - Work Homework 2
@@ -216,19 +216,19 @@ is then transformed into a new dataframe and saved in our repository as `mapping
 
 ```
 
-## Organization within the Team
+## Organization Within the Team
 
 | Xavier       | Paulo   | David        | Luca    | Joris        |
 |--------------|---------|--------------|---------|--------------|
 | Q.7, Website | Q.1 & 4 | Q.2, Website | Q.6 & 5 | Q.3, Website |
 
-## Contributions of the Team members
+## Contributions of the Team Members
 
-| Xavier      | Paulo   | David    | Luca    | Joris       |
-|-------------|---------|----------|---------|-------------|
-| Q.7         | Q.1     | Q.2      | Q.6     | Q.3         |
-| API Spotify | Q.4     | API TMDB | Q.5     | API Spotify |
-| Website     | Website | Website  | Website | Website     |
+| Xavier      | Paulo            | David    | Luca    | Joris       |
+|-------------|------------------|----------|---------|-------------|
+| Q.7         | Q.1              | Q.2      | Q.6     | Q.3         |
+| API Spotify | Q.4 / OpenAI API | API TMDB | Q.5     | API Spotify |
+| Website     | Website          | Website  | Website | Website     |
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

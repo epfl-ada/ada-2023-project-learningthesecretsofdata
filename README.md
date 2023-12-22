@@ -48,10 +48,11 @@
         <li><a href="#data-loading">Data Loading</a></li>
         <li><a href="#data-cleaning">Data Cleaning</a></li>
         <li><a href="#data-visualization">Data Visualization</a></li>
+        <li><a href="#data-processing">Data Processing</a></li>
       </ul>
     </li>
-    <li><a href="#proposed-timeline">Timeline</a></li>
-    <li><a href="#organization-within-the-team">Organization within the Team</a></li>
+    <li><a href="#project-timeline">Project Timeline</a></li>
+    <li><a href="#organization-within-the-team">Organization Within the Team</a></li>
   </ol>
 </details>
 
@@ -111,7 +112,7 @@ Missing attributes about movie's composers :
 - Place of birth
 - First appearance in movie credits
 
-We use a free to use API ([TMDB](https://www.themoviedb.org/?language=fr)) to enrich our movies' information. Also, some
+We use the free to use [TMDB API](https://www.themoviedb.org/?language=fr) to enrich our movies' information. Also, some
 important features are missing in some observation, that's why we dropped movies not containing the needed information.
 A specific
 script has been created to be run once and create our `clean_enrich_movie.pickle` dataset. Go to `enrich_movie_data.py`
@@ -181,24 +182,19 @@ Specifically, in order to address one of our research questions, we require a me
 countries. For instance, the input "New York City, New York, United States of America" should be associated with the
 output "United States." Additionally, various location variations should be standardized to the same country name; for
 example, both "USA" and "United States" should be mapped to "United States." To achieve this mapping, we provide the
-GPT-4 model with our dataset through an API request, asking it to provide a mapping dictionary. The resulting dictionary
-is then transformed into a new dataframe and saved in our repository as `mapping_locations_to_country.csv`.
+GPT-4 model with our dataset through an API request via `location_to_country_openai_api.py`, asking it to provide a 
+mapping dictionary. The resulting dictionary is then transformed into a new dataframe and saved in our repository as 
+`mapping_locations_to_country.csv`.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-## Proposed timeline
+## Project Timeline
 
 ```
-├── 20.11.23 - Work Homework 2
-│  
-├── 23.11.23 - Work Homework 2
-│  
 ├── 27.11.23 - Work Question 1
 │  
 ├── 30.11.23 - Work Question 2
-│  
-├── 04.12.23 - Homework 2 deadline
-│  
+│    
 ├── 04.12.23 - Work Question 3
 │  
 ├── 07.12.23 - Work Questions 4 & 5
@@ -212,22 +208,15 @@ is then transformed into a new dataframe and saved in our repository as `mapping
 ├── 22.12.23 - Milestone 3 deadline
 │  
 ├── 25.12.23 - Merry Christmas!
-
 ```
 
-## Organization within the Team
+## Contributions of the Team Members
 
-| Xavier       | Paulo   | David        | Luca    | Joris        |
-|--------------|---------|--------------|---------|--------------|
-| Q.7, Website | Q.1 & 4 | Q.2, Website | Q.6 & 5 | Q.3, Website |
-
-## Contributions of the Team members
-
-| Xavier      | Paulo   | David    | Luca    | Joris       |
-|-------------|---------|----------|---------|-------------|
-| Q.7         | Q.1     | Q.2      | Q.6     | Q.3         |
-| API Spotify | Q.4     | API TMDB | Q.5     | API Spotify |
-| Website     | Website | Website  | Website | Website     |
+| Xavier      | Paulo            | David    | Luca    | Joris       |
+|-------------|------------------|----------|---------|-------------|
+| Q.7         | Q.1              | Q.2      | Q.6     | Q.3         |
+| API Spotify | Q.4 / OpenAI API | API TMDB | Q.5     | API Spotify |
+| Website     | Website          | Website  | Website | Website     |
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

@@ -81,7 +81,12 @@ def create_plotly_number_of_movies(movie_grouped_by_top_composer):
     movie_counts_df.columns = ['year_bin'] + list(movie_counts_df.columns[1:])
     movie_counts_df = movie_counts_df.sort_values(by='year_bin')
 
-    movie_counts_df['year_bin'] = movie_counts_df['year_bin'].astype(str)
+    movie_counts_df['year_bin'] = (movie_counts_df['year_bin'].astype(str)
+                                   .replace('(', '')
+                                   .replace(')', '')
+                                   .replace('[', '')
+                                   .replace(']', '')
+                                   .replace(',', ' -'))
 
     fig = px.line(movie_counts_df, x='year_bin', y=list(movie_counts_df.columns[1:]),
                   title='Number of movies per composer')
@@ -121,7 +126,8 @@ def create_plotly_number_of_movies(movie_grouped_by_top_composer):
                 x=1.0,
                 xanchor="left",
                 y=1.32,
-                yanchor="top"
+                yanchor="top",
+                font=dict(color='#000000')
             ),
         ]
     )
@@ -132,6 +138,11 @@ def create_plotly_number_of_movies(movie_grouped_by_top_composer):
     )
     fig.update_traces(mode='lines')
 
+    # Transparent Background
+    fig.update_layout(
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)'
+    )
     fig.write_html("Q3_number_of_movies_per_year.html")
 
 
@@ -201,5 +212,11 @@ def create_plotly_box_office_revenue(movie_grouped_by_top_composer):
     )
 
     fig.update_traces(mode='lines')
+
+    # Transparent Background
+    fig.update_layout(
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)'
+    )
 
     fig.write_html("Q3_box_office_revenue_per_year.html")

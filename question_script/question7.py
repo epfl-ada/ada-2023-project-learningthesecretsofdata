@@ -84,7 +84,7 @@ def plot_popularity_histogram_matplt(pop_df: pd.DataFrame):
     bins = 50
 
     # Create the histogram
-    plt.hist(pop_df['popularity'], bins=bins, color='blue', edgecolor='black')
+    plt.hist(pop_df['popularity'], bins=bins)
 
     # Set the title and labels
     plt.title('Histogram of Popularity')
@@ -129,7 +129,7 @@ def plot_scatter_popularity_revenue_by_year_matplotlib(merged_df: pd.DataFrame):
 
     # Create a scatter plot using seaborn for better color handling and regression line
     sns.lmplot(x='popularity', y='movie_revenue', hue='release_date', data=merged_df,
-               aspect=1.5, fit_reg=True, scatter_kws={'alpha': 0.8},legend=False)
+               aspect=1.5, fit_reg=True, scatter_kws={'alpha': 0.8},legend=False, ci=None, x_ci=None)
 
     # Set title and labels
     plt.title('Scatter Plot of Popularity vs Movie Revenue by Year')
@@ -163,6 +163,9 @@ def plot_scatter_popularity_revenue_overall_matplotlib(merged_df: pd.DataFrame):
         The dataframe containing the popularity and revenue information
     """
     # Create a scatter plot with a regression line
+
+    fig, ax =
+
     sns.lmplot(x='popularity', y='movie_revenue', data=merged_df, fit_reg=True, scatter_kws={'alpha': 0.8},
                line_kws={'color': 'red'})
 

@@ -1,9 +1,10 @@
 import pandas as pd
 
 
-def extract_composers_dataframe(df: pd.DataFrame, group_by_composer_id: bool = False) -> pd.DataFrame:
+def extract_composers_data(df: pd.DataFrame, group_by_composer_id: bool = False) -> pd.DataFrame:
     """
-    Extract the composers dataframe from the movies dataframe.
+    Extract the composers data from the composers object in the movie dataframe. And directly append
+    each attributes as its own column in the dataframe
 
     Parameters
     ----------
@@ -12,11 +13,11 @@ def extract_composers_dataframe(df: pd.DataFrame, group_by_composer_id: bool = F
 
     Returns
     -------
-    The composers dataframe with required colum dropped, and each composer's attribute extracted in its own column
+    The composers dataframe with required columns dropped, and each composer's attribute extracted in its own column
     as: "c_id, c_name, c_birthday, c_gender, c_homepage, c_place_of_birth, c_date_first_appearance"
     """
 
-    # The dropna make the copy itself
+    # The dropna makes the copy itself
     exploded_df = df.dropna(subset='composers').explode('composers')
 
     (exploded_df['c_id'], exploded_df['c_name'], exploded_df['c_birthday'], exploded_df['c_gender'],
@@ -25,14 +26,14 @@ def extract_composers_dataframe(df: pd.DataFrame, group_by_composer_id: bool = F
             lambda c: (c.id, c.name, c.birthday, c.gender, c.homepage, c.place_of_birth, c.date_first_appearance)
         ))
 
-    # transform date column in date type
+    # Transform date columns to date type
     exploded_df['c_birthday'] = pd.to_datetime(exploded_df.c_birthday)
     exploded_df['c_date_first_appearance'] = pd.to_datetime(exploded_df.c_date_first_appearance)
 
     exploded_df.drop('composers', axis='columns', inplace=True)
 
     if group_by_composer_id:
-        # Only keep first occurrences of each composer
+        # Group the dataframe by composer id
         exploded_df = exploded_df.groupby('c_id')
 
     return exploded_df

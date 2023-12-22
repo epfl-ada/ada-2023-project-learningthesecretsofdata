@@ -182,8 +182,9 @@ Specifically, in order to address one of our research questions, we require a me
 countries. For instance, the input "New York City, New York, United States of America" should be associated with the
 output "United States." Additionally, various location variations should be standardized to the same country name; for
 example, both "USA" and "United States" should be mapped to "United States." To achieve this mapping, we provide the
-GPT-4 model with our dataset through an API request, asking it to provide a mapping dictionary. The resulting dictionary
-is then transformed into a new dataframe and saved in our repository as `mapping_locations_to_country.csv`.
+GPT-4 model with our dataset through an API request via `location_to_country_openai_api.py`, asking it to provide a 
+mapping dictionary. The resulting dictionary is then transformed into a new dataframe and saved in our repository as 
+`mapping_locations_to_country.csv`.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

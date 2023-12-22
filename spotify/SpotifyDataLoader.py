@@ -1,13 +1,10 @@
 import asyncio
-import time
 import urllib.parse
-from typing import Tuple, List, Any
+from typing import Any
 
 import aiohttp
-import numpy as np
 import pandas as pd
 from aiohttp import ClientResponseError
-from requests.exceptions import HTTPError
 
 from config import config, reload_env_config
 from spotify.Composer_Spotify import ComposerSpotify
@@ -167,7 +164,7 @@ class SpotifyDataLoader:
 
         genres = []
         if genre:
-            artist_id = [artist["id"]for batch in tracks for track in batch if track for artist in track['artists']]
+            artist_id = [artist["id"] for batch in tracks for track in batch if track for artist in track['artists']]
             genres = await self._perform_async_batch_request(f'{self._base_url}artists/%s',
                                                              [a_id for a_id in artist_id])
             if genres:

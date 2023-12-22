@@ -1,7 +1,8 @@
 """Script allowing to create a mapping between locations and countries with GPT"""
 
-import pandas as pd
 import ast
+
+import pandas as pd
 from openai import OpenAI
 
 # Set the list of locations to map

@@ -53,7 +53,13 @@ async def enhanced_with_revenue(movies: pandas.DataFrame, chunk_size=15000) -> p
         return result
 
 
-if __name__ == '__main__':
+def create_enhanced_movie_dataset():
+    """
+    This function enhance the movie dataset. It does:
+    - Loads a movie dataset
+    - enhances it with revenue information
+    - enriches it with composer details for each movie.
+    """
     # Load movies data set
     raw_movies = load_movies('dataset/MovieSummaries/movie.metadata.tsv')
 
@@ -67,3 +73,7 @@ if __name__ == '__main__':
 
     # Retrieve composers of all movies
     asyncio.run(enhanced_with_composer(cleaned_movies))
+
+
+if __name__ == '__main__':
+    create_enhanced_movie_dataset()

@@ -4,11 +4,11 @@ import time
 
 import numpy as np
 import pandas as pd
+from rapidfuzz import fuzz
 
-from question_script.question1 import create_db_to_link_composers_to_movies
+# from question_script.question1 import create_db_to_link_composers_to_movies
 from spotify import get_bearer_token
 from spotify.SpotifyDataLoader import SpotifyDataLoader
-from rapidfuzz import fuzz
 
 # Define keywords to search for soundtrack of movies
 POSITIVE_KEYWORD = ["original", "motion", "picture", "soundtrack", "music", "band", "score", "theme", "ost", "ost.",
@@ -332,7 +332,7 @@ async def get_music_from_track_ids(albums_with_track_ids: pd.DataFrame, checkpoi
     return albums_with_track_ids
 
 
-def main():
+def create_musics_dataset():
     # Load the data
     spotify_composers_dataset = pd.read_pickle('dataset/spotify_composers_dataset.pickle')
     clean_enrich_movies = pd.read_pickle('dataset/clean_enrich_movies.pickle')
@@ -385,5 +385,40 @@ def main():
     print("Enrichment done!!")
 
 
+def create_db_to_link_composers_to_movies(movies: pd.DataFrame) -> pd.DataFrame:
+    """Description if needed"""
+    # Initialize the new database
+    db_to_link_composers_to_movies = pd.DataFrame(
+        columns=['tmdb_id', 'comp_id', 'movie_name', 'movie_revenue', 'composer_name', 'release_date',
+                 'composer_place_of_birth']
+    )
+    # Set the index to be unique (pair of ids)
+    db_to_link_composers_to_movies.set_index(['tmdb_id', 'comp_id'], inplace=True)
+
+    # Description TODO
+    for _, movie in movies.iterrows():
+        movie_id = movie['tmdb_id']
+        movie_name = movie['name']
+        movie_revenue = movie['box_office_revenue']
+        composers = movie['composers']
+        release_date = movie['release_date']
+
+        if type(composers) == list:  # meaning we have information about composers, otherwise float nan returned
+            for composer in composers:
+                comp_id = composer.id
+                comp_name = composer.name
+                comp_place_of_birth = composer.place_of_birth
+                db_to_link_composers_to_movies.loc[(movie_id, comp_id), :] = \
+                    {'movie_name': movie_name,
+                     'movie_revenue': movie_revenue,
+                     'composer_name': comp_name,
+                     'release_date': release_date,
+                     'composer_place_of_birth': comp_place_of_birth}
+        else:
+            pass
+
+    return db_to_link_composers_to_movies
+
+
 if __name__ == '__main__':
-    main()
+    create_musics_dataset()

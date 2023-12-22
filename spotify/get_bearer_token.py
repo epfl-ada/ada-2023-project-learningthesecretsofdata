@@ -3,8 +3,9 @@ This script allows you to get a bearer token from Spotify's API.
 Be careful, the token expires after 1 hour.
 """
 
-import requests
 import os
+
+import requests
 
 from config import config
 
@@ -28,13 +29,13 @@ def replace_token(path="../"):
 
     # Save the access token to .env file
     access_token = auth_response_data['access_token']
-    with open(path+'.env', 'r') as old_env:
-        with open(path+'tmp', 'w') as new_env:
+    with open(path + '.env', 'r') as old_env:
+        with open(path + 'tmp', 'w') as new_env:
             for line in old_env:
                 if not line.strip('\n').startswith('SPOTIFY_ACCESS_TOKEN'):
                     new_env.write(line)
             new_env.write(f'SPOTIFY_ACCESS_TOKEN="{access_token}"\n')
-    os.replace(path+'tmp', path+'.env')
+    os.replace(path + 'tmp', path + '.env')
 
 
 if __name__ == '__main__':

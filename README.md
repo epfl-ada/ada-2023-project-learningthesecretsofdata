@@ -191,10 +191,6 @@ mapping dictionary. The resulting dictionary is then transformed into a new data
 ## Project Timeline
 
 ```
-├── 20.11.23 - Work Homework 2
-│  
-├── 23.11.23 - Work Homework 2
-│  
 ├── 27.11.23 - Work Question 1
 │  
 ├── 30.11.23 - Work Question 2
@@ -214,7 +210,6 @@ mapping dictionary. The resulting dictionary is then transformed into a new data
 ├── 22.12.23 - Milestone 3 deadline
 │  
 ├── 25.12.23 - Merry Christmas!
-
 ```
 
 ## Contributions of the Team Members

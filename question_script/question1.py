@@ -17,10 +17,11 @@ def question_1(movie_music_genre_df: pd.DataFrame, min_revenue: int, max_revenue
     :returns: Dataframe with sorted music genre in function of their number of appearance in movies.
     """
     selected_movie_music_genre_df = _movie_selection_over_revenue(df=movie_music_genre_df,
-                                                                 min_revenue=min_revenue,
-                                                                 max_revenue=max_revenue)
+                                                                  min_revenue=min_revenue,
+                                                                  max_revenue=max_revenue)
 
-    genre_count = _genre_distribution_over_movies(selected_movie_music_genre_df).sort_values(by='count', ascending=False)
+    genre_count = _genre_distribution_over_movies(selected_movie_music_genre_df).sort_values(by='count',
+                                                                                             ascending=False)
 
     if soundtrack_in_genre:
         return genre_count

@@ -112,7 +112,7 @@ Missing attributes about movie's composers :
 - Place of birth
 - First appearance in movie credits
 
-We use a free to use API ([TMDB](https://www.themoviedb.org/?language=fr)) to enrich our movies' information. Also, some
+We use the free to use [TMDB API](https://www.themoviedb.org/?language=fr) to enrich our movies' information. Also, some
 important features are missing in some observation, that's why we dropped movies not containing the needed information.
 A specific
 script has been created to be run once and create our `clean_enrich_movie.pickle` dataset. Go to `enrich_movie_data.py`

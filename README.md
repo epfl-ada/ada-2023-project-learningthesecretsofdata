@@ -11,7 +11,7 @@
 <h3 align="center">Stanislas' Music Dream : Road to Hollywood !</h3>
 
   <p align="center">
-    An awesome journey into Applied Data Analysis through movie dataset!
+    An awesome journey into Applied Data Analysis through movie dataset
     <br />
     <a href="https://learningthesecretsofdata.github.io/CS-401_Website/"><strong>Explore the Website »</strong></a>
   </p>

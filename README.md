@@ -1,13 +1,5 @@
-<!-- Improved compatibility of back to top link: See: https://github.com/othneildrew/Best-README-Template/pull/73 -->
+<!-- Able a quick return to the top page -->
 <a name="readme-top"></a>
-<!--
-*** Thanks for checking out the Best-README-Template. If you have a suggestion
-*** that would make this better, please fork the repo and create a pull request
-*** or simply open an issue with the tag "enhancement".
-*** Don't forget to give the project a star!
-*** Thanks again! Now go create something AMAZING! :D
--->
-
 
 <!-- PROJECT LOGO -->
 <br />
@@ -27,8 +19,8 @@
 
 ---
 
-**Authors:
-** [Luca Carroz](https://people.epfl.ch/emilie.carroz), [David Schroeter](https://people.epfl.ch/david.schroeter),
+**Authors:** [Luca Carroz](https://people.epfl.ch/emilie.carroz),
+[David Schroeter](https://people.epfl.ch/david.schroeter),
 [Xavier Ogay](https://people.epfl.ch/xavier.ogay), [Joris Monnet](https://people.epfl.ch/joris.monnet),
 [Paulo Ribeiro de Carvalho](https://people.epfl.ch/paulo.ribeirodecarvalho)
 
@@ -228,7 +220,6 @@ is then transformed into a new dataframe and saved in our repository as `mapping
 | Xavier       | Paulo   | David        | Luca    | Joris        |
 |--------------|---------|--------------|---------|--------------|
 | Q.7, Website | Q.1 & 4 | Q.2, Website | Q.6 & 5 | Q.3, Website |
-
 
 ## Contributions of the Team members
 

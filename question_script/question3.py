@@ -201,7 +201,8 @@ def create_plotly_box_office_revenue(movie_grouped_by_top_composer):
                 x=1.0,
                 xanchor="left",
                 y=1.32,
-                yanchor="top"
+                yanchor="top",
+                font=dict(color='#000000')
             ),
         ]
     )
